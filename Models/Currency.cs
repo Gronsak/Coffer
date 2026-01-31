@@ -1,9 +1,9 @@
 namespace Coffer.Models;
-public class Currency
+public class Currency (int isoNum, string name, string symbol, int decimals, string isoName)
 {
-    public int ISONum { get; set; }
-    public string Name { get; set; }
-    public string Symbol { get; set; }
-    public int Decimals { get; set; }
-    public string ISOName { get; set; }
+    public int ISONum { get; set; } = isoNum;
+    public string Name { get; set; } = name;
+    public string Symbol { get; set; } = symbol;
+    public int Decimals { get; set; } = decimals;
+    public string ISOName { get; set; } = isoName;
 }
