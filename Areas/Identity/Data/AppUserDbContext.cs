@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Coffer.Areas.Identity.Data;
 
-public class AppUserDbContext : IdentityDbContext<AppUser>
+public class ApplicationDbContext : IdentityDbContext<AppUser>
 {
-    public AppUserDbContext(DbContextOptions<AppUserDbContext> options)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
