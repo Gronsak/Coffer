@@ -12,7 +12,7 @@ namespace Coffer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20260203190540_init")]
-    partial class init
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
