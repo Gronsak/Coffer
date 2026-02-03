@@ -3,6 +3,7 @@ using System;
 using Coffer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,27 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Coffer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260203220529_LedgerAndMore")]
+    partial class LedgerAndMore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
-
-            modelBuilder.Entity("AppUserLedger", b =>
-                {
-                    b.Property<Guid>("MemberOfId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("MembersId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("MemberOfId", "MembersId");
-
-                    b.HasIndex("MembersId");
-
-                    b.ToTable("AppUserLedger");
-                });
 
             modelBuilder.Entity("Coffer.Data.AppUser", b =>
                 {
@@ -50,6 +38,9 @@ namespace Coffer.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("LedgerId")
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
@@ -85,6 +76,8 @@ namespace Coffer.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LedgerId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -242,7 +235,6 @@ namespace Coffer.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("OwnerId")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -485,19 +477,11 @@ namespace Coffer.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("AppUserLedger", b =>
+            modelBuilder.Entity("Coffer.Data.AppUser", b =>
                 {
                     b.HasOne("Coffer.Models.Ledger", null)
-                        .WithMany()
-                        .HasForeignKey("MemberOfId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Coffer.Data.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("MembersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Members")
+                        .HasForeignKey("LedgerId");
                 });
 
             modelBuilder.Entity("Coffer.Models.Cost", b =>
@@ -563,10 +547,8 @@ namespace Coffer.Migrations
                         .IsRequired();
 
                     b.HasOne("Coffer.Data.AppUser", "Owner")
-                        .WithMany("LedgersOwned")
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("OwnerId");
 
                     b.Navigation("DefaultCurrency");
 
@@ -688,16 +670,13 @@ namespace Coffer.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Coffer.Data.AppUser", b =>
-                {
-                    b.Navigation("LedgersOwned");
-                });
-
             modelBuilder.Entity("Coffer.Models.Ledger", b =>
                 {
                     b.Navigation("Costs");
 
                     b.Navigation("IOUs");
+
+                    b.Navigation("Members");
 
                     b.Navigation("Shares");
 

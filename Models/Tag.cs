@@ -1,6 +1,12 @@
 namespace Coffer.Models;
-public class Tag(string name)
+public class Tag
 {
+    public Tag() {}
+    public Tag(string name)
+    {
+        this.Name = name;
+    }
     public int Id { get; set; }
-    public string Name { get; set; } = name;
+    public string Name { get; set; } = "";
+    public List<Cost> Costs { get; } = [];
 }

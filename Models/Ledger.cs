@@ -1,9 +1,9 @@
 using Coffer.Data;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Coffer.Models;
 public class Ledger
 {
+    public Ledger() {}
     public Ledger(AppUser owner, string name, Currency defaulCurrency, ShareType defaultType = ShareType.Shares)
     {
         this.Name = name;
@@ -13,15 +13,15 @@ public class Ledger
         this.DefaultCurrency = defaulCurrency;
     }
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Name { get; set; }
-    public AppUser Owner { get; set; }
+    public string Name { get; set; } = "";
+    public AppUser Owner { get; set; } = new();
     public DateTime Created { get; set; } = DateTime.Now;
     public DateTime LastUpdated { get; set; } = DateTime.Now;
-    public List<Share> Shares { get; set; } = new List<Share>();
-    public List<IOU> IOUs { get; set; } = new List<IOU>();
-    public List<AppUser> Members { get; set; } = new List<AppUser>();
-    public List<Cost> Costs { get; set; } = new List<Cost>();
-    public List<Stake> Stakes { get; set; } = new List<Stake>();
+    public List<Share> Shares { get; set; } = [];
+    public List<IOU> IOUs { get; set; } = [];
+    public List<AppUser> Members { get; set; } = [];
+    public List<Cost> Costs { get; set; } = [];
+    public List<Stake> Stakes { get; set; } = [];
     public bool Active { get; set; } = true;
     public decimal CostsSum
     {
@@ -33,8 +33,8 @@ public class Ledger
                 where iou.Settled == false
                 select iou.Settled).FirstOrDefault(true);
     }
-    public ShareType DefaultShareType { get; set; }
-    public Currency DefaultCurrency { get; set; }
+    public ShareType DefaultShareType { get; set; } = ShareType.Shares;
+    public Currency DefaultCurrency { get; set; } = new();
 
     public bool CalculateShares()
     {
@@ -62,7 +62,7 @@ public class Ledger
             }
             else
             {
-                Stakes.Add(new Stake(holder, amount));
+                Stakes.Add(new(holder, amount));
             }
         }
         return true;
