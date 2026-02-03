@@ -7,7 +7,7 @@ public class Share(AppUser user, Currency shareCurrency, ShareType type)
     public AppUser User { get; set; } = user;
     public List<Tag> Tags { get; set; } = new List<Tag>();
     public ShareType Type { get; set; } = type;
-    public decimal Amount { get; set; } = 0;
+    public decimal Modifier { get; set; } = 0;
     public Currency ShareCurrency { get; set; } = shareCurrency;
     public decimal Split { get; set; } = 0;
     public Currency SplitCurrency { get; set; } = shareCurrency;
