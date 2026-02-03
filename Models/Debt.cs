@@ -1,4 +1,4 @@
-using Coffer.Areas.Identity.Data;
+using Coffer.Data;
 
 namespace Coffer.Models;
 public class IOU(AppUser owedByUser, AppUser OwedToUser, decimal amount, Currency currency)

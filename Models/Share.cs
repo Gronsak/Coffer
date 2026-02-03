@@ -1,4 +1,4 @@
-using Coffer.Areas.Identity.Data;
+using Coffer.Data;
 
 namespace Coffer.Models;
 public class Share(AppUser user, Currency shareCurrency, ShareType type)

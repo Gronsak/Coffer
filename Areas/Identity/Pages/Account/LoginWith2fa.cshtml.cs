@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using Coffer.Areas.Identity.Data;
+using Coffer.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 

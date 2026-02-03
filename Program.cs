@@ -1,5 +1,5 @@
 using Coffer.Components;
-using Coffer.Areas.Identity.Data;
+using Coffer.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

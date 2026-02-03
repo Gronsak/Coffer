@@ -1,9 +1,9 @@
-using Coffer.Areas.Identity.Data;
+using Coffer.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Coffer.Areas.Identity.Data;
+namespace Coffer.Data;
 
 public class ApplicationDbContext : IdentityDbContext<AppUser>
 {

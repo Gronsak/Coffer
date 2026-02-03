@@ -1,4 +1,4 @@
-using Coffer.Areas.Identity.Data;
+using Coffer.Data;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Coffer.Models;
