@@ -33,5 +33,11 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
         builder.Entity<Ledger>()
             .HasOne(l => l.Owner)
             .WithMany(u => u.LedgersOwned);
+        builder.Entity<Tag>()
+            .HasMany(t => t.Costs)
+            .WithMany(c => c.Tags);
+        builder.Entity<Tag>()
+            .HasMany(t => t.Shares)
+            .WithMany(s => s.Tags);
     }
 }
