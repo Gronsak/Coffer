@@ -64,4 +64,8 @@ nunit-*.xml
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# SQLite Database files
 *.db
+*.db-shm
+*.db-wal
