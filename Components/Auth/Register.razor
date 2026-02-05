@@ -1,0 +1,52 @@
+@page "/register"
+@rendermode InteractiveServer
+@inject UserManager<AppUser> UserManager
+@inject SignInManager<AppUser> SignInManager
+@inject NavigationManager Nav
+@inject ILogger<Register> Logger
+
+<h3>Register</h3>
+<EditForm Model="model" OnValidSubmit="HandleRegister" OnInvalidSubmit="HandleInvalid" FormName="Register">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <InputText @bind-Value="model.Email" class="form-control" placeholder="Email" />
+    <InputText @bind-Value="model.Password" type="password" class="form-control" placeholder="Password" />
+    <InputText @bind-Value="model.ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" />
+    <button type="submit" class="btn btn-primary">Register</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public string? returnUrl { get; set; }
+    RegisterModel model = new();
+
+    record RegisterModel
+    {
+        [Required, EmailAddress] public string? Email { get; set; }
+        [Required, MinLength(6)] public string? Password { get; set; }
+        [Compare(nameof(Password))] public string? ConfirmPassword { get; set; }
+    }
+
+    async Task HandleRegister()
+    {
+        if(model.Email is null || model.Password is null || model.ConfirmPassword is null) //TODO: Add error message
+            return;
+
+        var user = new AppUser { UserName = model.Email, Email = model.Email };
+        var result = await UserManager.CreateAsync(user, model.Password);
+
+        if (!result.Succeeded) //TODO: Add error message
+            return;
+
+        // TODO:
+        // If you require email confirmation (RequireConfirmedAccount = true),
+        // generate token and send confirmation link via your IEmailSender implementation.
+        // If not required, you can sign in immediately:
+        Nav.NavigateTo($"/login??returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}");
+    }
+
+    async Task HandleInvalid(EditContext context)
+    {
+        Logger.LogWarning($"Invalid submit: {model.Email} {context.Validate()}");
+    }
+}

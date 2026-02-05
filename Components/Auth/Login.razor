@@ -1,0 +1,64 @@
+@page "/login"
+
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@inject ILogger<Login> Logger
+@inject IJSRuntime JS
+
+<h3>Sign in</h3>
+
+<EditForm Model="model" FormName="LoginForm" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText @bind-Value="model.Email" placeholder="Email" class="form-control" />
+    <InputText @bind-Value="model.Password" type="password" placeholder="Password" class="form-control" />
+    <div class="form-check form-switch">
+        <InputCheckbox @bind-Value="model.RememberMe" role="switch" class="form-check-input" id="switchRememberMe" /> 
+        <label class="form-check-label" for="switchRememberMe">Remember me</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+</EditForm>
+
+<p>
+    <a href="@($"/register?returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}")">Register</a>
+    <a href="@($"/forgot-password?returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}")">Forgot password</a>
+</p>
+
+@code {
+    [Parameter] public string? returnUrl { get; set; }
+    LoginModel model = new();
+
+    record LoginModel
+    {
+        [Required, EmailAddress] public string? Email { get; set; }
+        [Required] public string? Password { get; set; }
+        public bool RememberMe { get; set; }
+    }
+    record JsFetchResult
+    {
+        public bool Ok { get; set; }
+        public int Status { get; set; }
+        public JsonElement? Body { get; set; }
+        public string? Error { get; set; }
+    }
+
+    async Task HandleLogin()
+    {
+        if(model.Email is null || model.Password is null) //TODO: Add error message
+            return;
+
+        var result = await JS.InvokeAsync<JsFetchResult>("fetchLogin", model.Email, model.Password, model.RememberMe);
+
+        if (result.Ok)
+        {
+            Nav.NavigateTo(returnUrl ?? "/", forceLoad: true);
+        }
+        else
+        {
+            //TODO: Add error message
+            model.Password = "";
+        }
+    }
+}
