@@ -1,7 +1,11 @@
 @page "/register"
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.CodeAnalysis.CSharp.Syntax
+@using System.Text
 @rendermode InteractiveServer
 @inject UserManager<AppUser> UserManager
 @inject SignInManager<AppUser> SignInManager
+@inject IEmailSender<AppUser> EmailSender
 @inject NavigationManager Nav
 @inject ILogger<Register> Logger
 
@@ -37,12 +41,25 @@
 
         if (!result.Succeeded) //TODO: Add error message
             return;
+        
+        string token = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+        string userId = user.Id;
+        Dictionary<string,string?> dto = new Dictionary<string, string?>
+        {
+            { "userId" , userId },
+            { "token", token },
+            { "returnUrl", returnUrl }
+        };
+        string json = JsonSerializer.Serialize(dto);
+        string data = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(json));
+        //var confirmLink = Link.GetPathByPage(page: "/confirmEmail", values: new{ userId, token, returnUrl });
+        var confirmLink = Nav.ToAbsoluteUri($"/confirmEmail/{data}").AbsoluteUri;
+        if(confirmLink is not null)
+            await EmailSender.SendConfirmationLinkAsync(user,user.Email,confirmLink);
+        else
+            Logger.LogError("Unable to generate confirmation link!");
 
-        // TODO:
-        // If you require email confirmation (RequireConfirmedAccount = true),
-        // generate token and send confirmation link via your IEmailSender implementation.
-        // If not required, you can sign in immediately:
-        Nav.NavigateTo($"/login??returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}");
+        Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}");
     }
 
     async Task HandleInvalid(EditContext context)

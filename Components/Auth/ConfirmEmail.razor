@@ -1,0 +1,63 @@
+@page "/confirmEmail/{data}"
+@using Microsoft.AspNetCore.WebUtilities
+@using System.Text
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@inject UserManager<AppUser> UserManager
+@inject ILogger<ConfirmEmail> Logger
+
+<span class="h1">Email verification</span>
+@if(loading){
+<div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Working...</span>
+</div>
+}
+<p>@message</p>
+<button class="btn btn-primary" @onclick="GoBack">Go Back</button>
+
+
+@code {
+    [Parameter]
+    public string? Data { get; set; }
+    public string? UserId { get; set; }
+    public string? Token { get; set; }
+    public string? ReturnUrl { get; set; }
+    public string message = "Working...";
+    public bool loading = true;
+    protected override async Task OnParametersSetAsync()
+    {
+        if(Data is not null)
+        {
+            try{
+                string jsonData = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Data));
+                Dictionary<string,string?> dto = JsonSerializer.Deserialize<Dictionary<string,string?>>(jsonData)!;
+                UserId = dto["userId"];
+                Token = dto["token"];
+                ReturnUrl = dto["returnUrl"];
+            }
+            catch
+            {
+                Logger.LogError("Could not extract data from string!");
+            }
+        }
+        if(UserId is not null && Token is not null)
+        {
+            var user = await UserManager.FindByIdAsync(UserId);
+            if(user is not null) {
+                var result = await UserManager.ConfirmEmailAsync(user,Token);
+                if(result.Succeeded)
+                {
+                    message = "Success! Your email is now verified.";
+                    loading = false;
+                    return;
+                }
+            }
+        }
+        message = "There was an error verifying your email adress!";
+        loading = false;
+    }
+    public void GoBack()
+    {
+        Nav.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+    }
+}

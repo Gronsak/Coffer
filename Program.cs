@@ -1,5 +1,6 @@
 using Coffer.Components;
 using Coffer.Data;
+using Coffer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddControllers();
 builder.Services.AddRazorPages(); //TODO: remove when implemented account management via Blazor components
+
+builder.Services.AddSingleton<IEmailSender<AppUser>, JsonMailer>(x => new(builder.Environment.ContentRootPath));
 
 var app = builder.Build();
 
