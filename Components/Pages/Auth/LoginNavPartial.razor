@@ -1,0 +1,11 @@
+<AuthorizeView>
+    <Authorized>
+        <span>Welcome, @context.User.Identity?.Name!</span>
+        <NavLink href="/logout"><span>Logout</span></NavLink>
+    </Authorized>
+    <NotAuthorized>
+        <NavLink href="/login">
+            <span>Login</span>
+        </NavLink>
+    </NotAuthorized>
+</AuthorizeView>
