@@ -1,6 +1,4 @@
 @page "/confirmEmail/{data}"
-@using Microsoft.AspNetCore.WebUtilities
-@using System.Text
 @rendermode InteractiveServer
 @inject NavigationManager Nav
 @inject UserManager<AppUser> UserManager
@@ -19,8 +17,6 @@
 @code {
     [Parameter]
     public string? Data { get; set; }
-    public string? UserId { get; set; }
-    public string? Token { get; set; }
     public string? ReturnUrl { get; set; }
     public string message = "Working...";
     public bool loading = true;
@@ -28,6 +24,8 @@
     {
         if(Data is not null)
         {
+            string? UserId = null;
+            string? Token = null;
             try{
                 string jsonData = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Data));
                 Dictionary<string,string?> dto = JsonSerializer.Deserialize<Dictionary<string,string?>>(jsonData)!;
@@ -39,17 +37,17 @@
             {
                 Logger.LogError("Could not extract data from string!");
             }
-        }
-        if(UserId is not null && Token is not null)
-        {
-            var user = await UserManager.FindByIdAsync(UserId);
-            if(user is not null) {
-                var result = await UserManager.ConfirmEmailAsync(user,Token);
-                if(result.Succeeded)
-                {
-                    message = "Success! Your email is now verified.";
-                    loading = false;
-                    return;
+            if(UserId is not null && Token is not null)
+            {
+                var user = await UserManager.FindByIdAsync(UserId);
+                if(user is not null) {
+                    var result = await UserManager.ConfirmEmailAsync(user,Token);
+                    if(result.Succeeded)
+                    {
+                        message = "Success! Your email is now verified.";
+                        loading = false;
+                        return;
+                    }
                 }
             }
         }

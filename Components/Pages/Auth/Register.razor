@@ -1,7 +1,4 @@
 @page "/register"
-@using Microsoft.AspNetCore.WebUtilities
-@using Microsoft.CodeAnalysis.CSharp.Syntax
-@using System.Text
 @rendermode InteractiveServer
 @inject UserManager<AppUser> UserManager
 @inject SignInManager<AppUser> SignInManager
@@ -52,7 +49,6 @@
         };
         string json = JsonSerializer.Serialize(dto);
         string data = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(json));
-        //var confirmLink = Link.GetPathByPage(page: "/confirmEmail", values: new{ userId, token, returnUrl });
         var confirmLink = Nav.ToAbsoluteUri($"/confirmEmail/{data}").AbsoluteUri;
         if(confirmLink is not null)
             await EmailSender.SendConfirmationLinkAsync(user,user.Email,confirmLink);
