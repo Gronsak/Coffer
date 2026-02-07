@@ -10,6 +10,7 @@
 <EditForm Model="model" OnValidSubmit="HandleRegister" OnInvalidSubmit="HandleInvalid" FormName="Register">
     <DataAnnotationsValidator />
     <ValidationSummary />
+    <InputText @bind-Value="model.Username" class="form-control" placeholder="Username" />
     <InputText @bind-Value="model.Email" class="form-control" placeholder="Email" />
     <InputText @bind-Value="model.Password" type="password" class="form-control" placeholder="Password" />
     <InputText @bind-Value="model.ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" />
@@ -23,6 +24,7 @@
 
     record RegisterModel
     {
+        [Required] public string? Username { get; set; }
         [Required, EmailAddress] public string? Email { get; set; }
         [Required, MinLength(6)] public string? Password { get; set; }
         [Compare(nameof(Password))] public string? ConfirmPassword { get; set; }
@@ -33,7 +35,7 @@
         if(model.Email is null || model.Password is null || model.ConfirmPassword is null) //TODO: Add error message
             return;
 
-        var user = new AppUser { UserName = model.Email, Email = model.Email };
+        var user = new AppUser { UserName = model.Username, Email = model.Email };
         var result = await UserManager.CreateAsync(user, model.Password);
 
         if (!result.Succeeded) //TODO: Add error message
