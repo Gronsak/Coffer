@@ -1,19 +1,24 @@
+using System.ComponentModel.DataAnnotations;
 using Coffer.Data;
 
 namespace Coffer.Models;
 public class Ledger
 {
     public Ledger() {}
-    public Ledger(AppUser owner, string name, Currency defaulCurrency, ShareType defaultType = ShareType.Shares)
+    public Ledger(AppUser owner, string name, Currency defaulCurrency, string description = "", ShareType defaultType = ShareType.Shares)
     {
         this.Name = name;
+        this.Description = description;
         this.Owner = owner;
         this.Members.Add(owner);
         this.DefaultShareType = defaultType;
         this.DefaultCurrency = defaulCurrency;
     }
     public Guid Id { get; set; } = Guid.NewGuid();
+    [Required]
     public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+    [Required]
     public AppUser Owner { get; set; } = new();
     public DateTime Created { get; set; } = DateTime.Now;
     public DateTime LastUpdated { get; set; } = DateTime.Now;
@@ -23,6 +28,8 @@ public class Ledger
     public List<Cost> Costs { get; set; } = [];
     public List<Stake> Stakes { get; set; } = [];
     public bool Active { get; set; } = true;
+    public ShareType DefaultShareType { get; set; } = ShareType.Shares;
+    public Currency DefaultCurrency { get; set; } = new();
     public decimal CostsSum
     {
         get => (from cost in Costs select cost.Amount).Sum(); 
@@ -33,8 +40,6 @@ public class Ledger
                 where iou.Settled == false
                 select iou.Settled).FirstOrDefault(true);
     }
-    public ShareType DefaultShareType { get; set; } = ShareType.Shares;
-    public Currency DefaultCurrency { get; set; } = new();
 
     public bool CalculateShares()
     {
