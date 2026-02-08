@@ -13,11 +13,14 @@ builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireCo
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddControllers();
 builder.Services.AddRazorPages(); //TODO: remove when implemented account management via Blazor components
 
 builder.Services.AddSingleton<IEmailSender<AppUser>, JsonMailer>(x => new(builder.Environment.ContentRootPath));
+
+builder.Services.AddScoped<ITreasurer, Treasurer>();
 
 var app = builder.Build();
 

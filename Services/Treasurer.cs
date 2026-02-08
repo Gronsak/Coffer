@@ -1,42 +1,190 @@
+using System.Security.Claims;
 using Coffer.Data;
 using Coffer.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Coffer.Services;
 
-public class Treasurer : ITreasurer
+public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<ApplicationDbContext> dbContextFactory) : ITreasurer
 {
-    public Ledger CreateLedger()
+    private UserManager<AppUser> UserManager { get; set; } = userManager;
+    private IDbContextFactory<ApplicationDbContext> DbContextFactory { get; set; } = dbContextFactory;
+
+    public async Task<bool> CreateLedgerAsync(string name, AppUser owner, Currency defaultCurrency, string description = "", ShareType defaultType = ShareType.Shares)
     {
-        throw new NotImplementedException();
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(owner.UserName);
+
+        using var db = await DbContextFactory.CreateDbContextAsync();
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == owner.Id);
+        var currency = await db.Currencies.FirstOrDefaultAsync(c => c.ISONum == defaultCurrency.ISONum);
+
+        if(currency is null)
+        {
+            if(!string.IsNullOrWhiteSpace(defaultCurrency.Name) && defaultCurrency.ISONum != 0 && !string.IsNullOrWhiteSpace(defaultCurrency.ISOName))
+            {
+                currency = defaultCurrency;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        if(user is null)
+            return false;
+        
+        Ledger ledger = new(user, name, currency, description, defaultType);
+
+        await db.AddAsync(ledger);
+        var result = await db.SaveChangesAsync();
+
+        if(result>0)
+            return true;
+
+        return false;
     }
 
-    public bool DeleteLedger(Ledger ledger)
+    public Task<bool> DeleteLedgerAsync(Ledger ledger)
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(); //TODO: implement
     }
 
-    public Ledger GetLedger(Guid id)
+    public async Task<Ledger?> GetLedgerAsync(Guid id)
     {
-        throw new NotImplementedException();
+        using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var ledger = await db.Ledgers
+            .Include(l => l.Costs)
+            .ThenInclude(c => c.Tags)
+            .Include(l => l.IOUs)
+            .Include(l => l.Members)
+            .Include(l => l.Shares)
+            .ThenInclude(s => s.Tags)
+            .Include(l => l.Stakes)
+            .Where(l => l.Id == id)
+            .OrderBy(l => l.Name)
+            .FirstOrDefaultAsync();
+
+        if (ledger is null)
+            return new();
+
+        return ledger;
     }
 
-    public Ledger GetLedger(string name)
+    public async Task<Ledger?> GetLedgerAsync(string name)
     {
-        throw new NotImplementedException();
+        using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var ledger = await db.Ledgers
+            .Include(l => l.Costs)
+            .ThenInclude(c => c.Tags)
+            .Include(l => l.IOUs)
+            .Include(l => l.Members)
+            .Include(l => l.Shares)
+            .ThenInclude(s => s.Tags)
+            .Include(l => l.Stakes)
+            .Where(l => l.Name == name)
+            .OrderBy(l => l.Name)
+            .FirstOrDefaultAsync();
+
+        return ledger;
     }
 
-    public List<Ledger> GetLedgers()
+    public async Task<List<Ledger>> GetLedgersAsync()
     {
-        throw new NotImplementedException();
+        using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var ledgers = await db.Ledgers
+            .Include(l => l.Costs)
+            .ThenInclude(c => c.Tags)
+            .Include(l => l.IOUs)
+            .Include(l => l.Members)
+            .Include(l => l.Shares)
+            .ThenInclude(s => s.Tags)
+            .Include(l => l.Stakes)
+            .OrderBy(l => l.Name)
+            .ToListAsync();
+
+        if (ledgers is null)
+            return [];
+
+        return ledgers;
     }
 
-    public List<Ledger> GetLedgers(AppUser owner)
+    public async Task<List<Ledger>> GetLedgersAsync(AppUser owner)
     {
-        throw new NotImplementedException();
+        using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var ledgers = await db.Ledgers
+            .Include(l => l.Costs)
+            .ThenInclude(c => c.Tags)
+            .Include(l => l.IOUs)
+            .Include(l => l.Members)
+            .Include(l => l.Shares)
+            .ThenInclude(s => s.Tags)
+            .Include(l => l.Stakes)
+            .Where(l => l.Owner == owner)
+            .OrderBy(l => l.Name)
+            .ToListAsync();
+
+        if (ledgers is null)
+            return [];
+
+        return ledgers;
     }
 
-    public bool SaveLedger(Ledger ledger)
+    public async Task<List<Ledger>> GetLedgersAsync(ClaimsPrincipal owner)
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(owner.Identity);
+        ArgumentException.ThrowIfNullOrWhiteSpace(owner.Identity.Name);
+
+        var user = await UserManager.FindByNameAsync(owner.Identity.Name);
+
+        if(user is null)
+            return [];
+
+        return await GetLedgersByMemeberAsync(user);
+    }
+
+    public async Task<List<Ledger>> GetLedgersByMemeberAsync(AppUser member)
+    {
+        using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var ledgers = await db.Ledgers
+            .Include(l => l.Costs)
+            .ThenInclude(c => c.Tags)
+            .Include(l => l.IOUs)
+            .Include(l => l.Members)
+            .Include(l => l.Shares)
+            .ThenInclude(s => s.Tags)
+            .Include(l => l.Stakes)
+            .Where(l => l.Members.Contains(member))
+            .OrderBy(l => l.Name)
+            .ToListAsync();
+
+        if (ledgers is null)
+            return [];
+
+        return ledgers;
+    }
+
+    public async Task<List<Ledger>> GetLedgersByMemeberAsync(ClaimsPrincipal member)
+    {
+        ArgumentNullException.ThrowIfNull(member.Identity);
+        ArgumentException.ThrowIfNullOrWhiteSpace(member.Identity.Name);
+
+        var user = await UserManager.FindByNameAsync(member.Identity.Name);
+
+        if(user is null)
+            return [];
+
+        return await GetLedgersByMemeberAsync(user);
+    }
+
+    public Task<bool> UpdateLedgerAsync(Ledger ledger)
+    {
+        throw new NotImplementedException(); //TODO: implement
     }
 }
