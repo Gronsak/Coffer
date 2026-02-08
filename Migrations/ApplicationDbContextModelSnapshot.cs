@@ -29,7 +29,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("MembersId");
 
-                    b.ToTable("AppUserLedger");
+                    b.ToTable("AppUserLedger", (string)null);
                 });
 
             modelBuilder.Entity("Coffer.Data.AppUser", b =>
@@ -144,7 +144,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("PayedById");
 
-                    b.ToTable("Costs");
+                    b.ToTable("Costs", (string)null);
                 });
 
             modelBuilder.Entity("Coffer.Models.Currency", b =>
@@ -173,7 +173,7 @@ namespace Coffer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Currencies");
+                    b.ToTable("Currencies", (string)null);
                 });
 
             modelBuilder.Entity("Coffer.Models.IOU", b =>
@@ -213,7 +213,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("OwedToUserId");
 
-                    b.ToTable("IOUs");
+                    b.ToTable("IOUs", (string)null);
                 });
 
             modelBuilder.Entity("Coffer.Models.Ledger", b =>
@@ -255,7 +255,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Ledgers");
+                    b.ToTable("Ledgers", (string)null);
                 });
 
             modelBuilder.Entity("Coffer.Models.Share", b =>
@@ -295,7 +295,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Shares");
+                    b.ToTable("Shares", (string)null);
                 });
 
             modelBuilder.Entity("Coffer.Models.Stake", b =>
@@ -319,7 +319,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("LedgerId");
 
-                    b.ToTable("Stakes");
+                    b.ToTable("Stakes", (string)null);
                 });
 
             modelBuilder.Entity("Coffer.Models.Tag", b =>
@@ -334,7 +334,7 @@ namespace Coffer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tags");
+                    b.ToTable("Tags", (string)null);
                 });
 
             modelBuilder.Entity("CostTag", b =>
@@ -349,7 +349,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("TagsId");
 
-                    b.ToTable("CostTag");
+                    b.ToTable("CostTag", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -496,7 +496,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("TagsId");
 
-                    b.ToTable("ShareTag");
+                    b.ToTable("ShareTag", (string)null);
                 });
 
             modelBuilder.Entity("AppUserLedger", b =>
