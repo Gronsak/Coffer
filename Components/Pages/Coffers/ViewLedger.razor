@@ -1,0 +1,121 @@
+@page "/ledger/view/{ledgerId}"
+@using Coffer.Data
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ITreasurer Treasurer
+
+@if(Loading){
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}else if(Ledger is null){
+    <div class="alert alert-danger" role="alert">
+        Could not find ledger!
+    </div>
+}else{
+    <div>
+        <span class="h1">@Ledger.Name</span>
+    </div>
+    <div class="d-flex flex-column flex-lg-row">
+        <div class="p-2 flex-grow-1 position-relative">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Cost</th>
+                        <th scope="col">Sum</th>
+                        <th scope="col">By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach(var cost in Ledger.Costs){
+                    <tr>
+                        <th scope="row">@cost.PayedOn</th>
+                        <td>@cost.Name</td>
+                        <td>@cost.Amount</td>
+                        <td>@cost.PayedBy</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            <button class="btn btn-primary position-sticky bottom-0 w-100" @onclick="OpenModalNewCost">
+                <Blazicon Svg='MdiIcon.CashPlus.WithSize("200%")' />
+            </button>
+        </div>
+        <div class="p-2" style="min-width: 20rem;">
+            <div class="p-2 text-bg-primary rounded">
+                Members <span class="badge text-bg-secondary">@Ledger.Members.Count</span>
+            </div>
+            <ul class="list-group mt-2">
+            @foreach(var member in Ledger.Members){
+                <li class="list-group-item">@member</li>
+            }
+            </ul>
+            <button type="button" class="btn btn-primary position-sticky bottom-0 w-100">
+                <Blazicon Svg='MdiIcon.AccountPlus.WithSize("200%")' />
+            </button>
+        </div>
+    </div>
+    <CostModal @ref=costModal OnSave="SaveModal" />
+}
+
+@code {
+    [Parameter]
+    public string? LedgerId { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState>? authStateTask { get; set; }
+    [CascadingParameter]
+    public AuthenticationState? State { get; set; }
+    Ledger? Ledger;
+    bool Loading = true;
+    CostModal costModal = new();
+    protected override async Task OnParametersSetAsync()
+    {
+        if(authStateTask is not null)
+            State = await authStateTask;
+        
+        if(LedgerId is null)
+        {
+            return;
+        }
+        try{
+        var id = new Guid(LedgerId);
+        Ledger = await Treasurer.GetLedgerAsync(id);
+        }
+        catch{
+
+        }
+        Loading = false;
+    }
+    public async Task OpenModalNewCost()
+    {
+        if(Ledger is null || State is null)
+            return;
+        
+        var currencies = await Treasurer.GetCurrenciesAsync();
+        if(!currencies.Any())
+            return;
+        var SEK = currencies.FirstOrDefault(c => c.ISOName == "SEK");
+        if(SEK is null)
+            return;
+
+        var CurrentUserId = State.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if(CurrentUserId is null)
+            return;
+
+        var user = Ledger.Members.FirstOrDefault(m => m.Id == CurrentUserId);
+        if(user is null)
+            return;
+        
+        Cost cost = new(SEK, user, user);
+        await costModal.Show(cost, Ledger.Members, false);
+    }
+    public async Task CloseModal()
+    {
+        await costModal.Close();
+    }
+    public async Task SaveModal(Cost cost)
+    {
+
+    }
+}

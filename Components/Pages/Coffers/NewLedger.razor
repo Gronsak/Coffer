@@ -1,0 +1,57 @@
+@page "/ledger/new"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ITreasurer Treasurer
+@inject UserManager<AppUser> UserManager
+
+<EditForm Model="form" OnValidSubmit="CreateLedger">
+    <InputText class="form-control" placeholder="Ledger Name" @bind-Value="form.Name" />
+    <InputText class="form-control" placeholder="Description" @bind-Value="form.Description" />
+    <InputText class="form-control" placeholder="Owner" @bind-Value="form.Owner" disabled />
+    <button class="btn btn-primary" type="submit">Create</button>
+</EditForm>
+
+@code {
+    Ledger Ledger = new();
+    [CascadingParameter]
+    private Task<AuthenticationState>? authStateTask { get; set; }
+    [CascadingParameter]
+    public AuthenticationState? State { get; set; }
+    LedgerFormModel form = new();
+    private class LedgerFormModel{
+        [Required]
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        [Required]
+        public string Owner { get; set; } = "";
+    }
+    public async Task<bool> CreateLedger(){
+        Ledger.Name = form.Name;
+        Ledger.Description = form.Description;
+        return await Treasurer.CreateLedgerAsync(
+            name: Ledger.Name, 
+            owner: Ledger.Owner, 
+            defaultCurrency: Ledger.DefaultCurrency, 
+            description: Ledger.Description, 
+            defaultType: Ledger.DefaultShareType);
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        if(authStateTask is not null)
+            State = await authStateTask;
+
+        if(State is not null)
+        {
+            string? id = State.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if(id is not null){
+                var user = await UserManager.FindByIdAsync(id);
+                if(user is not null)
+                {
+                    Ledger.Owner = user;
+                    form.Owner = user.UserName!;
+                }
+            }
+        }
+        Ledger.DefaultCurrency = new(752,"Swedish krona","kr",2,"SEK");
+    }
+}

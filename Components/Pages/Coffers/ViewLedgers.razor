@@ -1,0 +1,46 @@
+@page "/ledgers"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ITreasurer Treasurer
+
+@if(Loading){
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}else{
+    if(Ledgers is null){
+        <div class="alert alert-warning" role="alert">
+            There was an error retriving the ledgers!
+        </div>
+    }else if(Ledgers.Count == 0){
+        <div class="alert alert-warning" role="alert">
+            No ledgers found for user!
+        </div>
+    }else{
+        <div class="list-group">
+        @foreach(var ledger in Ledgers){
+            <a class="list-group-item list-group-item-action list-group-item-primary" href="/ledger/view/@ledger.Id" >@ledger.Name</a>
+        }
+        </div>
+    }
+}
+
+@code {
+    List<Ledger>? Ledgers;
+    bool Loading = true;
+    [CascadingParameter]
+    private Task<AuthenticationState>? authStateTask { get; set; }
+    [CascadingParameter]
+    public AuthenticationState? State { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        if(authStateTask is not null)
+            State = await authStateTask;
+
+        if(State is not null)
+        {
+            Ledgers = await Treasurer.GetLedgersByMemeberAsync(State.User);
+        }
+        Loading = false;
+    }
+}

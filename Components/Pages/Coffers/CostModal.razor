@@ -1,0 +1,150 @@
+@rendermode InteractiveServer
+
+@if(!Hidden){
+    if(Cost is not null && Members is not null){
+    <div class="modal fade @modalClass" id="costModal" aria-labelledby="costModalLabel" aria-hidden="@Hidden" style="display:@modalDisplay;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="costModalLabel">Add new cost</h1>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="form" OnValidSubmit="Save" OnInvalidSubmit="Invalid">
+                        <div class="mb-2">
+                            <label class="form-label">Name</label>
+                            <InputText DisplayName="Name" @bind-Value="form.Name" placeholder="Name" class="form-control" />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Description</label>
+                            <InputTextArea DisplayName="Description" @bind-Value="form.Description" placeholder="Description" class="form-control" rows="3" />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Amount</label>
+                            <div class="input-group">
+                                <InputNumber DisplayName="Amount" @bind-Value="form.Amount" placeholder="0.00" class="form-control" step="0.01" />
+                                <span class="input-group-text">@Cost.Currency.Symbol</span>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Date payed</label>
+                            <InputDate DisplayName="Payed date" @bind-Value="form.PayedOn" placeholder="YYYY-MM-DD" class="form-control" />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Payed by</label>
+                            <InputSelect DisplayName="Payed by" @bind-Value="form.PayedBy" class="form-select">
+                                @foreach(var member in Members){
+                                    if(member.Id == Cost.AddedBy.Id){
+                                        <option value="@member.UserName" selected>@member.UserName</option>
+                                    }else{
+                                        <option value="@member.UserName">@member.UserName</option>
+                                    }
+                                }
+                            </InputSelect>
+                        </div>
+                        
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade @modalClass" @onclick="Close" style="display:@modalDisplay;"></div>
+    }else{
+        @(Error = true)
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div class="toast @(Error?"show":"")" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <Blazicon Svg='MdiIcon.Alert.WithSize("200%")' />
+                    <strong class="me-auto">Bootstrap</strong>
+                    <button type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Something went wrong, try reloading the site and if the issue presists please inform the Admin!
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public EventCallback<Cost> OnSave { get; set; }
+    public Cost? Cost { get; set; }
+    public List<AppUser>? Members { get; set; }
+    public bool Editing { get; set; }
+    bool Hidden = true;
+    bool Error;
+    string modalClass = "";
+    string modalDisplay = "none";
+    CostFormModel form = new();
+    private class CostFormModel
+    {
+        [Required]
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        [Required]
+        public decimal Amount { get; set; }
+        [Required]
+        public DateTime PayedOn { get; set; }
+        [Required]
+        public string PayedBy { get; set; } = "";
+    }
+    public async Task Show(Cost cost, List<AppUser> members, bool editingExisting){
+        Cost = cost;
+        Members = members;
+        Editing = editingExisting;
+
+        form.Name = Cost.Name;
+        form.Description = Cost.Description;
+        form.Amount = Cost.Amount;
+        form.PayedOn = Cost.PayedOn;
+        form.PayedBy = Cost.PayedBy.UserName ?? "";
+
+        Hidden = false;
+        modalDisplay = "block";
+        StateHasChanged();
+        await Task.Delay(50);
+        modalClass = "show";
+        StateHasChanged();
+    }
+    public async Task Close(){
+        modalClass = "";
+        StateHasChanged();
+        await Task.Delay(500);
+        modalDisplay = "none";
+        Hidden = true;
+        StateHasChanged();
+    }
+    public async Task UpdatePayedBy(string username){
+        if(!string.IsNullOrWhiteSpace(username) && Cost is not null && Members is not null){
+            Cost.PayedBy = Members.First(m => m.UserName == username);
+        }
+    }
+    public async Task Save(){
+        if(!string.IsNullOrWhiteSpace(form.Name) && 
+            !string.IsNullOrWhiteSpace(form.PayedBy) && 
+            Cost is not null && 
+            Members is not null)
+        {
+            Cost.Name = form.Name;
+            Cost.Description = form.Description;
+            Cost.Amount = form.Amount;
+            Cost.PayedOn = form.PayedOn;
+            Cost.PayedBy = Members.First(m => m.UserName == form.PayedBy);
+            if(OnSave.HasDelegate)
+                await OnSave.InvokeAsync(Cost);
+        }
+    }
+    public async Task Invalid(){
+        
+    }
+
+    private async Task CloseError(){
+        Error = false;
+        StateHasChanged();
+    }
+}
