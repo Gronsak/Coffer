@@ -51,6 +51,12 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         throw new NotImplementedException(); //TODO: implement
     }
 
+    public async Task<List<Currency>> GetCurrenciesAsync()
+    {
+        using var db = await DbContextFactory.CreateDbContextAsync();
+        return await db.Currencies.ToListAsync();
+    }
+
     public async Task<Ledger?> GetLedgerAsync(Guid id)
     {
         using var db = await DbContextFactory.CreateDbContextAsync();
@@ -137,15 +143,11 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
 
     public async Task<List<Ledger>> GetLedgersAsync(ClaimsPrincipal owner)
     {
-        ArgumentNullException.ThrowIfNull(owner.Identity);
-        ArgumentException.ThrowIfNullOrWhiteSpace(owner.Identity.Name);
-
-        var user = await UserManager.FindByNameAsync(owner.Identity.Name);
-
-        if(user is null)
+        string? id = owner.FindFirstValue(ClaimTypes.NameIdentifier);
+        if(id is null)
             return [];
-
-        return await GetLedgersByMemeberAsync(user);
+        
+        return await GetLedgersByOwnerIdAsync(id);
     }
 
     public async Task<List<Ledger>> GetLedgersByMemeberAsync(AppUser member)
@@ -172,10 +174,16 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
 
     public async Task<List<Ledger>> GetLedgersByMemeberAsync(ClaimsPrincipal member)
     {
-        ArgumentNullException.ThrowIfNull(member.Identity);
-        ArgumentException.ThrowIfNullOrWhiteSpace(member.Identity.Name);
+        string? id = member.FindFirstValue(ClaimTypes.NameIdentifier);
+        if(id is null)
+            return [];
+        
+        return await GetLedgersByMemeberIdAsync(id);
+    }
 
-        var user = await UserManager.FindByNameAsync(member.Identity.Name);
+    public async Task<List<Ledger>> GetLedgersByMemeberIdAsync(string memberId)
+    {
+        var user = await UserManager.FindByIdAsync(memberId);
 
         if(user is null)
             return [];
@@ -183,7 +191,17 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         return await GetLedgersByMemeberAsync(user);
     }
 
-    public Task<bool> UpdateLedgerAsync(Ledger ledger)
+    public async Task<List<Ledger>> GetLedgersByOwnerIdAsync(string ownerId)
+    {
+        var user = await UserManager.FindByIdAsync(ownerId);
+
+        if(user is null)
+            return [];
+
+        return await GetLedgersAsync(user);
+    }
+
+    public async Task<bool> UpdateLedgerAsync(Ledger ledger)
     {
         throw new NotImplementedException(); //TODO: implement
     }
