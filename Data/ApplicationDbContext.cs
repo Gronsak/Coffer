@@ -37,7 +37,10 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .HasMany(t => t.Costs)
             .WithMany(c => c.Tags);
         builder.Entity<Tag>()
-            .HasMany(t => t.Shares)
-            .WithMany(s => s.Tags);
+            .HasMany(t => t.IncludedShares)
+            .WithMany(s => s.IncludeTags);
+        builder.Entity<Tag>()
+            .HasMany(t => t.ExcludedShares)
+            .WithMany(s => s.ExcludeTags);
     }
 }

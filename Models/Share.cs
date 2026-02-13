@@ -12,7 +12,9 @@ public class Share
     }
     public Guid Id { get; set; } = Guid.NewGuid();
     public AppUser User { get; set; } = new();
-    public List<Tag> Tags { get; set; } = [];
+    public Cost? SingleCost { get; set; }
+    public List<Tag> IncludeTags { get; set; } = [];
+    public List<Tag> ExcludeTags { get; set; } = [];
     public ShareType Type { get; set; } = ShareType.Shares;
     public decimal Modifier { get; set; } = 0;
     public Currency ShareCurrency { get; set; } = new();

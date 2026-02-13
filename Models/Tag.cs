@@ -9,5 +9,6 @@ public class Tag
     public int Id { get; set; }
     public string Name { get; set; } = "";
     public List<Cost> Costs { get; } = [];
-    public List<Share> Shares { get; } = [];
+    public List<Share> IncludedShares { get; } = [];
+    public List<Share> ExcludedShares { get; } = [];
 }
