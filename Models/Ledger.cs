@@ -30,6 +30,10 @@ public class Ledger
     public bool Active { get; set; } = true;
     public ShareType DefaultShareType { get; set; } = ShareType.Shares;
     public Currency DefaultCurrency { get; set; } = new();
+    public List<Tag> AllTags
+    {
+        get => GetAllTags();
+    }
     public decimal CostsSum
     {
         get => (from cost in Costs select cost.Amount).Sum(); 
@@ -114,5 +118,17 @@ public class Ledger
         if(!Active)
             return false;
         throw new NotImplementedException();
+    }
+    private List<Tag> GetAllTags()
+    {
+        var costTags = Costs.SelectMany(c => c.Tags).Distinct() ?? [];
+        var shareIncludeTags = Shares.SelectMany(s => s.IncludeTags).Distinct() ?? [];
+        var shareExcludeTags = Shares.SelectMany(s => s.ExcludeTags).Distinct() ?? [];
+        
+        var allUniqueTags = costTags.Union(shareIncludeTags)
+                                    .Union(shareExcludeTags)
+                                    .ToList();
+
+        return allUniqueTags;
     }
 }
