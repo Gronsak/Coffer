@@ -21,4 +21,21 @@ public class Cost
     public AppUser AddedBy { get; set; } = new();
     public AppUser PayedBy { get; set; } = new();
     public List<Tag> Tags { get; set; } = [];
+    public bool UpdateCost(Cost cost)
+    {
+        if(string.IsNullOrWhiteSpace(cost.Name))
+            return false;
+        if(string.IsNullOrWhiteSpace(cost.Currency.ISOName) || cost.Currency.ISONum == 0 || string.IsNullOrWhiteSpace(cost.Currency.Name))
+            return false;
+        
+        this.Name = cost.Name;
+        this.Amount = cost.Amount;
+        this.Currency = cost.Currency;
+        this.Description = cost.Description;
+        this.PayedOn = cost.PayedOn;
+        this.Updated = DateTime.Now;
+        this.PayedBy = cost.PayedBy;
+        this.Tags = cost.Tags;
+        return true;
+    }
 }
