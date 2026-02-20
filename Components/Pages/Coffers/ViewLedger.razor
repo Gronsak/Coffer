@@ -23,8 +23,8 @@
                     <tr>
                         <th scope="col">Date</th>
                         <th scope="col">Cost</th>
-                        <th scope="col">Sum</th>
-                        <th scope="col">By</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Payed By</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -108,7 +108,7 @@
             return;
         
         Cost cost = new(SEK, user, user);
-        await costModal.Show(cost, Ledger.Members, false);
+        await costModal.Show(cost, Ledger.Members, Ledger.AllTags, false);
     }
     public async Task CloseModal()
     {
@@ -116,6 +116,15 @@
     }
     public async Task SaveModal(Cost cost)
     {
+        if(Ledger is null)
+            return;
 
+        if(costModal.Editing){
+            foreach(var editCost in Ledger.Costs.Where(c => c.Id == cost.Id)){
+                editCost.UpdateCost(cost);
+            }
+        }else{
+            var success = Ledger.AddCost(cost);
+        }
     }
 }
