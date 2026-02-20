@@ -1,3 +1,4 @@
+@using Microsoft.CodeAnalysis.CSharp.Syntax
 @rendermode InteractiveServer
 
 @if(!Hidden){
@@ -11,27 +12,24 @@
                 </div>
                 <div class="modal-body">
                     <EditForm Model="form" OnValidSubmit="Save" OnInvalidSubmit="Invalid">
-                        <div class="mb-2">
-                            <label class="form-label">Name</label>
+                        <div class="mb-2 input-group">
+                            <label class="input-group-text">Name</label>
                             <InputText DisplayName="Name" @bind-Value="form.Name" placeholder="Name" class="form-control" />
                         </div>
                         <div class="mb-2">
-                            <label class="form-label">Description</label>
                             <InputTextArea DisplayName="Description" @bind-Value="form.Description" placeholder="Description" class="form-control" rows="3" />
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label">Amount</label>
-                            <div class="input-group">
-                                <InputNumber DisplayName="Amount" @bind-Value="form.Amount" placeholder="0.00" class="form-control" step="0.01" />
-                                <span class="input-group-text">@Cost.Currency.Symbol</span>
-                            </div>
+                        <div class="mb-2 input-group">
+                            <label class="input-group-text">Amount</label>
+                            <InputNumber DisplayName="Amount" @bind-Value="form.Amount" placeholder="0.00" class="form-control" step="1" />
+                            <span class="input-group-text">@Cost.Currency.Symbol</span>
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label">Date payed</label>
+                        <div class="mb-2 input-group">
+                            <label class="input-group-text">Date payed</label>
                             <InputDate DisplayName="Payed date" @bind-Value="form.PayedOn" placeholder="YYYY-MM-DD" class="form-control" />
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label">Payed by</label>
+                        <div class="mb-2 input-group">
+                            <label class="input-group-text">Payed by</label>
                             <InputSelect DisplayName="Payed by" @bind-Value="form.PayedBy" class="form-select">
                                 @foreach(var member in Members){
                                     if(member.Id == Cost.AddedBy.Id){
@@ -42,7 +40,39 @@
                                 }
                             </InputSelect>
                         </div>
-                        
+                        <div class="mb-2">
+                            @foreach(var tag in Cost.Tags){
+                                <button type="button" class="badge rounded-pill text-bg-warning" @onclick="(e => RemoveTag(tag))">@tag.Name <Blazicon Svg="MdiIcon.TagRemove" /></button>
+                            }
+                        </div>
+                        <div class="mb-2">
+                            <div class="input-group" @onfocusout="(e=>HandleFocusChange(e))">
+                                <button type="button" class="btn btn-secondary dropdown-toggle" @onclick="ToggleTagDropdown">Tags</button>
+                                <ul class="dropdown-menu @(TagDropdownShown? "show":"")" style="position: absolute; transform: translate(0px, 2.5rem);">
+                                    @if(!string.IsNullOrWhiteSpace(NewTagName)&&!Tags.Any(t => t.Name == NewTagName)){
+                                    <li>
+                                        <button type="button" @onclick="CreateTag" class="dropdown-item">
+                                            <Blazicon Svg="MdiIcon.TagPlus" />
+                                            <span>@NewTagName</span>
+                                        </button>
+                                    </li>
+                                    }
+                                    @foreach(var tag in Tags){
+                                        if(!Cost.Tags.Contains(tag)&&tag.Name.StartsWith(NewTagName)){
+                                        <li>
+                                            <div class="dropdown-item">
+                                                <button type="button" class="badge rounded-pill text-bg-primary" @onclick="@(e => AddTag(tag))">
+                                                    @tag.Name
+                                                    <Blazicon Svg="MdiIcon.TagCheck" />
+                                                </button>
+                                            </div>
+                                        </li>
+                                        }
+                                    }
+                                </ul>
+                                <input type="text" class="form-control" @bind-value="NewTagName" @oninput="(e => TagTextChange(e))"/>
+                            </div>
+                        </div>
                     <button type="submit" class="btn btn-primary">Save</button>
                     </EditForm>
                 </div>
@@ -78,8 +108,12 @@
     public bool Editing { get; set; }
     bool Hidden = true;
     bool Error;
+    List<Tag> Tags = [];
+    int DropdownTags = 0;
+    bool TagDropdownShown;
     string modalClass = "";
     string modalDisplay = "none";
+    string NewTagName = "";
     CostFormModel form = new();
     private class CostFormModel
     {
@@ -93,9 +127,10 @@
         [Required]
         public string PayedBy { get; set; } = "";
     }
-    public async Task Show(Cost cost, List<AppUser> members, bool editingExisting){
+    public async Task Show(Cost cost, List<AppUser> members, List<Tag> tags, bool editingExisting){
         Cost = cost;
         Members = members;
+        Tags = tags;
         Editing = editingExisting;
 
         form.Name = Cost.Name;
@@ -137,6 +172,7 @@
             Cost.PayedBy = Members.First(m => m.UserName == form.PayedBy);
             if(OnSave.HasDelegate)
                 await OnSave.InvokeAsync(Cost);
+                await Close();
         }
     }
     public async Task Invalid(){
@@ -146,5 +182,62 @@
     private async Task CloseError(){
         Error = false;
         StateHasChanged();
+    }
+
+    private async Task ShowTagDropdown(){
+        TagDropdownShown = true;
+        StateHasChanged();
+    }
+    private async Task HideTagDropdown(){
+        TagDropdownShown = false;
+        StateHasChanged();
+    }
+    private async Task ToggleTagDropdown(){
+        if(TagDropdownShown){
+            await HideTagDropdown();
+        }else{
+            await ShowTagDropdown();
+        }
+    }
+    private async Task HandleFocusChange(FocusEventArgs args){
+
+    }
+    private async Task TagTextChange(ChangeEventArgs args){
+        if(args.Value is null)
+            return;
+        var newValue = args.Value.ToString();
+
+        if(newValue is null)
+            return;
+
+        if(newValue == "" && DropdownTags == 0)
+            await HideTagDropdown();
+        else
+            await ShowTagDropdown();
+
+        NewTagName = newValue.ToLower();
+        StateHasChanged();
+    }
+    private async Task CreateTag(){
+        if(!string.IsNullOrWhiteSpace(NewTagName) && Cost is not null && !Tags.Any(t => t.Name == NewTagName)){
+            var tag = new Tag(NewTagName.ToLower());
+
+            Tags.Add(tag);
+            Tags = Tags.OrderBy(t=>t.Name).ToList();
+            Cost.Tags.Add(tag);
+            NewTagName = "";
+        }
+    }
+    private async Task AddTag(Tag tag){
+        if(Cost is null)
+            return;
+        
+        Cost.Tags.Add(tag);
+    }
+    private async Task RemoveTag(Tag tag){
+        if(Cost is null)
+            return;
+        
+        Cost.Tags.Remove(tag);
     }
 }
