@@ -44,7 +44,7 @@
         </div>
         <div class="p-2" style="min-width: 20rem;">
             <div class="p-2 text-bg-primary rounded">
-                Members <span class="badge text-bg-secondary">@Ledger.Members.Count</span>
+                Members <span class="badge text-bg-secondary">@Ledger.Members.Count()</span>
             </div>
             <ul class="list-group mt-2">
             @foreach(var member in Ledger.Members){
@@ -125,6 +125,7 @@
             }
         }else{
             var success = Ledger.AddCost(cost);
+            var updateSuccess = await Treasurer.UpdateLedgerAsync(Ledger);
         }
     }
 }

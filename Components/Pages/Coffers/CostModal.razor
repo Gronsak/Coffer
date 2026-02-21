@@ -104,7 +104,7 @@
     [Parameter]
     public EventCallback<Cost> OnSave { get; set; }
     public Cost? Cost { get; set; }
-    public List<AppUser>? Members { get; set; }
+    public IEnumerable<AppUser>? Members { get; set; }
     public bool Editing { get; set; }
     bool Hidden = true;
     bool Error;
@@ -127,7 +127,7 @@
         [Required]
         public string PayedBy { get; set; } = "";
     }
-    public async Task Show(Cost cost, List<AppUser> members, List<Tag> tags, bool editingExisting){
+    public async Task Show(Cost cost, IEnumerable<AppUser> members, List<Tag> tags, bool editingExisting){
         Cost = cost;
         Members = members;
         Tags = tags;
