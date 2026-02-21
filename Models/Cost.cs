@@ -23,9 +23,9 @@ public class Cost
     public List<Tag> Tags { get; set; } = [];
     public bool UpdateCost(Cost cost)
     {
-        if(string.IsNullOrWhiteSpace(cost.Name))
-            return false;
-        if(string.IsNullOrWhiteSpace(cost.Currency.ISOName) || cost.Currency.ISONum == 0 || string.IsNullOrWhiteSpace(cost.Currency.Name))
+        if(this.Id != cost.Id
+        || string.IsNullOrWhiteSpace(cost.Name)
+        || string.IsNullOrWhiteSpace(cost.Currency.ISOName) || cost.Currency.ISONum == 0 || string.IsNullOrWhiteSpace(cost.Currency.Name))
             return false;
         
         this.Name = cost.Name;
