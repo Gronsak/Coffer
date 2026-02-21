@@ -38,7 +38,7 @@
                 }
                 </tbody>
             </table>
-            <button class="btn btn-primary position-sticky bottom-0 w-100" @onclick="OpenModalNewCost">
+            <button class="btn btn-primary position-sticky bottom-0 w-100" @onclick="OpenNewCostModal">
                 <Blazicon Svg='MdiIcon.CashPlus.WithSize("200%")' />
             </button>
         </div>
@@ -56,7 +56,7 @@
             </button>
         </div>
     </div>
-    <CostModal @ref=costModal OnSave="SaveModal" />
+    <CostModal @ref=costModal OnSave="SaveCostModal" />
 }
 
 @code {
@@ -87,7 +87,7 @@
         }
         Loading = false;
     }
-    public async Task OpenModalNewCost()
+    public async Task OpenNewCostModal()
     {
         if(Ledger is null || State is null)
             return;
@@ -110,11 +110,11 @@
         Cost cost = new(SEK, user, user);
         await costModal.Show(cost, Ledger.Members, Ledger.AllTags, false);
     }
-    public async Task CloseModal()
+    public async Task CloseCostModal()
     {
         await costModal.Close();
     }
-    public async Task SaveModal(Cost cost)
+    public async Task SaveCostModal(Cost cost)
     {
         if(Ledger is null)
             return;
