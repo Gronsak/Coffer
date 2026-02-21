@@ -20,4 +20,20 @@ public class Share
     public Currency ShareCurrency { get; set; } = new();
     public decimal Split { get; set; } = 0;
     public Currency SplitCurrency { get; set; } = new();
+    public bool UpdateShare(Share share)
+    {
+        if(this.Id != share.Id || this.User != share.User)
+            return false;
+        
+        this.SingleCost = share.SingleCost;
+        this.IncludeTags = share.IncludeTags;
+        this.ExcludeTags = share.ExcludeTags;
+        this.Type = share.Type;
+        this.Modifier = share.Modifier;
+        this.ShareCurrency = share.ShareCurrency;
+        this.Split = share.Split;
+        this.SplitCurrency = share.SplitCurrency;
+        
+        return true;
+    }
 }

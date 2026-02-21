@@ -18,4 +18,17 @@ public class IOU
     public Currency Currency { get; set; } = new();
     public decimal SettledAmount { get; set; } = 0;
     public bool Settled { get; set; } = false;
+    public bool UpdateIOU(IOU iou)
+    {
+        if(iou.Id != this.Id || iou.OwedByUser != this.OwedByUser)
+            return false;
+        
+        this.OwedToUser = iou.OwedToUser;
+        this.Amount = iou.Amount;
+        this.Currency = iou.Currency;
+        this.SettledAmount = iou.SettledAmount;
+        this.Settled = iou.Settled;
+        
+        return true;
+    }
 }
