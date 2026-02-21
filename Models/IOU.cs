@@ -11,7 +11,7 @@ public class IOU
         this.Amount = amount;
         this.Currency = currency;
     }
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
     public AppUser OwedByUser { get; set; } = new();
     public AppUser OwedToUser { get; set; } = new();
     public decimal Amount { get; set; }

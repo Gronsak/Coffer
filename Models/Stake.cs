@@ -9,7 +9,7 @@ public class Stake
         this.Holder = userWithStake;
         this.AmountStaked = stake;
     }
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
     public AppUser Holder { get; set; } = new();
     public decimal AmountStaked { get; set; } = 0;
 }

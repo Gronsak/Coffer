@@ -10,7 +10,7 @@ public class Share
         this.ShareCurrency = shareCurrency;
         this.Type = type;
     }
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
     public AppUser User { get; set; } = new();
     public Cost? SingleCost { get; set; }
     public List<Tag> IncludeTags { get; set; } = [];

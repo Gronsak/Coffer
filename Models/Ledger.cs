@@ -14,7 +14,7 @@ public class Ledger
         this.DefaultShareType = defaultType;
         this.DefaultCurrency = defaulCurrency;
     }
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
     [Required]
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";

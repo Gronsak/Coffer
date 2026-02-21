@@ -10,7 +10,7 @@ public class Cost
         this.AddedBy = userAdding;
         this.PayedBy = userPayed;
     }
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
     public string Name { get; set; } = "";
     public decimal Amount { get; set; }
     public Currency Currency { get; set; } = new();
