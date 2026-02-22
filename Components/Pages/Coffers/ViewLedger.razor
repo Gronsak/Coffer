@@ -28,7 +28,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                @foreach(var cost in Ledger.Costs){
+                @foreach(var cost in Ledger.Costs.OrderBy(cost => cost.PayedOn)){
                     <tr>
                         <th scope="row">@cost.PayedOn</th>
                         <td>@cost.Name</td>
