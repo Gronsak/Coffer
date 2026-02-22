@@ -38,4 +38,41 @@ public class Cost
         this.Tags = cost.Tags;
         return true;
     }
+    public override bool Equals(object? obj)
+    {
+        if (obj is null || obj is not Cost)
+            return false;
+        
+        var other = (Cost)obj;
+        if (Id != other.Id ||
+            Name != other.Name ||
+            Amount != other.Amount ||
+            Currency != other.Currency ||
+            Description != other.Description ||
+            PayedOn != other.PayedOn ||
+            Added != other.Added ||
+            Updated != other.Updated ||
+            AddedBy != other.AddedBy ||
+            PayedBy != other.PayedBy ||
+            !Tags.SequenceEqual(other.Tags))
+            return false;
+        
+        return true;
+    }
+    public static bool operator ==(Cost x, Cost y){ return x.Equals(y); }
+    public static bool operator !=(Cost x, Cost y){ return !x.Equals(y); }
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode() 
+        ^ Name.GetHashCode() 
+        ^ Amount.GetHashCode() 
+        ^ Currency.GetHashCode() 
+        ^ Description.GetHashCode() 
+        ^ PayedOn.GetHashCode() 
+        ^ Added.GetHashCode() 
+        ^ Updated.GetHashCode() 
+        ^ AddedBy.GetHashCode() 
+        ^ PayedBy.GetHashCode() 
+        ^ Tags.GetHashCode();
+    }
 }

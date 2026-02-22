@@ -33,7 +33,43 @@ public class Share
         this.ShareCurrency = share.ShareCurrency;
         this.Split = share.Split;
         this.SplitCurrency = share.SplitCurrency;
-        
+
         return true;
+    }
+    public override bool Equals(object? obj)
+    {
+        if(obj is null || obj is not Share)
+            return false;
+        
+        var other = (Share)obj;
+
+        if (Id != other.Id ||
+            User != other.User ||
+            (SingleCost ?? new()) != (other.SingleCost ?? new()) ||
+            IncludeTags.SequenceEqual(other.IncludeTags) ||
+            ExcludeTags.SequenceEqual(other.ExcludeTags) ||
+            Type != other.Type ||
+            Modifier != other.Modifier ||
+            ShareCurrency != other.ShareCurrency ||
+            Split != other.Split ||
+            SplitCurrency != other.SplitCurrency)
+            return false;
+
+        return true;
+    }
+    public static bool operator ==(Share x, Share y){ return x.Equals(y); }
+    public static bool operator !=(Share x, Share y){ return x.Equals(y); }
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode()
+            ^ User.GetHashCode()
+            ^ (SingleCost?.GetHashCode() ?? 0)
+            ^ IncludeTags.GetHashCode()
+            ^ ExcludeTags.GetHashCode()
+            ^ Type.GetHashCode()
+            ^ Modifier.GetHashCode()
+            ^ ShareCurrency.GetHashCode()
+            ^ Split.GetHashCode()
+            ^ SplitCurrency.GetHashCode();
     }
 }
