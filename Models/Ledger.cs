@@ -18,12 +18,38 @@ public class Ledger
     }
     public Guid Id { get; set; }
     [Required]
-    public string Name { get; set; } = "";
-    public string Description { get; set; } = "";
+    public string Name 
+    { 
+        get; 
+        set
+        {
+            field = value;
+            _updated = DateTime.Now;
+        }
+    } = "";
+    public string Description 
+    {
+        get; 
+        set
+        {
+            field = value;
+            _updated = DateTime.Now;
+        }
+    } = "";
     [Required]
-    public AppUser Owner { get; set; } = new();
-    public DateTime Created { get; set; } = DateTime.Now;
-    public DateTime LastUpdated { get; set; } = DateTime.Now;
+    public AppUser Owner 
+    {
+        get; 
+        set
+        {
+            field = value;
+            _updated = DateTime.Now;
+        }
+    } = new();
+    [BackingField(nameof(_created))]
+    public DateTime Created { get; }
+    [BackingField(nameof(_updated))]
+    public DateTime LastUpdated { get; }
     [BackingField(nameof(_shares))]
     public IEnumerable<Share> Shares
     {
@@ -49,9 +75,33 @@ public class Ledger
     {
         get { return _stakes.AsEnumerable(); }
     }
-    public bool Active { get; set; } = true;
-    public ShareType DefaultShareType { get; set; } = ShareType.Shares;
-    public Currency DefaultCurrency { get; set; } = new();
+    public bool Active 
+    {
+        get; 
+        set
+        {
+            field = value;
+            _updated = DateTime.Now;
+        }
+    } = true;
+    public ShareType DefaultShareType 
+    {
+        get; 
+        set
+        {
+            field = value;
+            _updated = DateTime.Now;
+        }
+    } = ShareType.Shares;
+    public Currency DefaultCurrency 
+    {
+        get; 
+        set
+        {
+            field = value;
+            _updated = DateTime.Now;
+        }
+    } = new();
     public List<Tag> AllTags
     {
         get => GetAllTags();
@@ -66,6 +116,8 @@ public class Ledger
                 where iou.Settled == false
                 select iou.Settled).FirstOrDefault(true);
     }
+    private DateTime _created = DateTime.Now;
+    private DateTime _updated = DateTime.Now;
     private List<Share> _shares = [];
     private List<IOU> _ious = [];
     private List<AppUser> _members = [];
@@ -106,11 +158,12 @@ public class Ledger
     {
         throw new NotImplementedException();
     }
-    private void RecalculateLedger()
+    public void RecalculateLedger()
     {
         CalculateStakes();
         // CalculateShares();
         // CalculateIOUs();
+        this._updated = DateTime.Now;
     }
     public bool AddCost(Cost cost)
     {
