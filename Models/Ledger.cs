@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Coffer.Data;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 
@@ -46,31 +47,24 @@ public class Ledger
             _updated = DateTime.Now;
         }
     } = new();
-    [BackingField(nameof(_created))]
-    public DateTime Created { get; }
-    [BackingField(nameof(_updated))]
-    public DateTime LastUpdated { get; }
-    [BackingField(nameof(_shares))]
+    public DateTime Created { get { return _created; } }
+    public DateTime LastUpdated { get { return _updated; } }
     public IEnumerable<Share> Shares
     {
         get { return _shares.AsEnumerable(); } 
     }
-    [BackingField(nameof(_ious))]
     public IEnumerable<IOU> IOUs
     {
         get { return _ious.AsEnumerable(); } 
     }
-    [BackingField(nameof(_members))]
     public IEnumerable<AppUser> Members
     {
         get { return _members.AsEnumerable(); } 
     }
-    [BackingField(nameof(_costs))]
     public IEnumerable<Cost> Costs
     {
         get { return _costs.AsEnumerable(); }
     }
-    [BackingField(nameof(_stakes))]
     public IEnumerable<Stake> Stakes
     {
         get { return _stakes.AsEnumerable(); }
