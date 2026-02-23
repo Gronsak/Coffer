@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @inject ITreasurer Treasurer
 @inject UserManager<AppUser> UserManager
+@inject NavigationManager Navigation
 
 <EditForm Model="form" OnValidSubmit="CreateLedger">
     <InputText class="form-control" placeholder="Ledger Name" @bind-Value="form.Name" />
@@ -25,15 +26,18 @@
         [Required]
         public string Owner { get; set; } = "";
     }
-    public async Task<bool> CreateLedger(){
+    public async Task CreateLedger(){
         Ledger.Name = form.Name;
         Ledger.Description = form.Description;
-        return await Treasurer.CreateLedgerAsync(
+        var ledger = await Treasurer.CreateLedgerAsync(
             name: Ledger.Name, 
             owner: Ledger.Owner, 
             defaultCurrency: Ledger.DefaultCurrency, 
             description: Ledger.Description, 
             defaultType: Ledger.DefaultShareType);
+        
+        if(ledger is not null)
+            Navigation.NavigateTo($"/ledger/view/{ledger.Id}");
     }
     protected override async Task OnInitializedAsync()
     {

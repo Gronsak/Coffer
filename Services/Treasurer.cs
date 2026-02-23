@@ -12,7 +12,7 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
     private IDbContextFactory<ApplicationDbContext> DbContextFactory { get; set; } = dbContextFactory;
     private readonly ILogger<Treasurer> Logger = logger;
 
-    public async Task<bool> CreateLedgerAsync(string name, AppUser owner, Currency defaultCurrency, string description = "", ShareType defaultType = ShareType.Shares)
+    public async Task<Ledger?> CreateLedgerAsync(string name, AppUser owner, Currency defaultCurrency, string description = "", ShareType defaultType = ShareType.Shares)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(owner.UserName);
@@ -29,12 +29,12 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
             }
             else
             {
-                return false;
+                return null;
             }
         }
 
         if(user is null)
-            return false;
+            return null;
         
         Ledger ledger = new(user, name, currency, description, defaultType);
 
@@ -42,9 +42,11 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         var result = await db.SaveChangesAsync();
 
         if(result>0)
-            return true;
+        {
+            return ledger;
+        }
 
-        return false;
+        return null;
     }
 
     public Task<bool> DeleteLedgerAsync(Ledger ledger)
@@ -52,10 +54,11 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         throw new NotImplementedException(); //TODO: implement
     }
 
-    public async Task<List<Currency>> GetCurrenciesAsync()
+    public async Task<List<Currency>?> GetCurrenciesAsync()
     {
         using var db = await DbContextFactory.CreateDbContextAsync();
-        return await db.Currencies.ToListAsync();
+        var currencies = await db.Currencies.ToListAsync();
+        return currencies;
     }
 
     public async Task<Ledger?> GetLedgerAsync(Guid id)
@@ -79,7 +82,7 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         return ledger;
     }
 
-    public async Task<List<Ledger>> GetLedgersAsync()
+    public async Task<List<Ledger>?> GetLedgersAsync()
     {
         using var db = await DbContextFactory.CreateDbContextAsync();
 
@@ -98,13 +101,10 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
             .OrderBy(l => l.Name)
             .ToListAsync();
 
-        if (ledgers is null)
-            return [];
-
         return ledgers;
     }
 
-    public async Task<List<Ledger>> GetLedgersAsync(AppUser owner)
+    public async Task<List<Ledger>?> GetLedgersAsync(AppUser owner)
     {
         using var db = await DbContextFactory.CreateDbContextAsync();
 
@@ -124,22 +124,19 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
             .OrderBy(l => l.Name)
             .ToListAsync();
 
-        if (ledgers is null)
-            return [];
-
         return ledgers;
     }
 
-    public async Task<List<Ledger>> GetLedgersAsync(ClaimsPrincipal owner)
+    public async Task<List<Ledger>?> GetLedgersAsync(ClaimsPrincipal owner)
     {
         string? id = owner.FindFirstValue(ClaimTypes.NameIdentifier);
         if(id is null)
-            return [];
+            return null;
         
         return await GetLedgersByOwnerIdAsync(id);
     }
 
-    public async Task<List<Ledger>> GetLedgersByMemeberAsync(AppUser member)
+    public async Task<List<Ledger>?> GetLedgersByMemeberAsync(AppUser member)
     {
         using var db = await DbContextFactory.CreateDbContextAsync();
 
@@ -158,95 +155,92 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
             .Where(l => l.Members.Contains(member))
             .OrderBy(l => l.Name)
             .ToListAsync();
-
-        if (ledgers is null)
-            return [];
-
+        
         return ledgers;
     }
 
-    public async Task<List<Ledger>> GetLedgersByMemeberAsync(ClaimsPrincipal member)
+    public async Task<List<Ledger>?> GetLedgersByMemeberAsync(ClaimsPrincipal member)
     {
         string? id = member.FindFirstValue(ClaimTypes.NameIdentifier);
         if(id is null)
-            return [];
+            return null;
         
         return await GetLedgersByMemeberIdAsync(id);
     }
 
-    public async Task<List<Ledger>> GetLedgersByMemeberIdAsync(string memberId)
+    public async Task<List<Ledger>?> GetLedgersByMemeberIdAsync(string memberId)
     {
         var user = await UserManager.FindByIdAsync(memberId);
 
         if(user is null)
-            return [];
+            return null;
 
         return await GetLedgersByMemeberAsync(user);
     }
 
-    public async Task<List<Ledger>> GetLedgersByOwnerIdAsync(string ownerId)
+    public async Task<List<Ledger>?> GetLedgersByOwnerIdAsync(string ownerId)
     {
         var user = await UserManager.FindByIdAsync(ownerId);
 
         if(user is null)
-            return [];
+            return null;
 
         return await GetLedgersAsync(user);
     }
     //TODO: more logging!
-    public async Task<bool> UpdateLedgerAsync(Ledger updatedLedger)
+    public async Task<Ledger?> UpdateLedgerAsync(Ledger updatedLedger)
     {
         if(updatedLedger.Id == default)
         {
             Logger.LogError("Ledger was not retrived, Id was set to GUID default!");
-            return false;
+            return null;
         }
         
         using var db = await DbContextFactory.CreateDbContextAsync();
 
-        var oldLedger = await FetchLedgerByIdAsync(updatedLedger.Id, db);
+        var dbLedger = await FetchLedgerByIdAsync(updatedLedger.Id, db);
 
-        if(oldLedger is null)
+        if(dbLedger is null)
         {
             Logger.LogError("Ledger {updatedLedger.Id} was not found!", updatedLedger.Id);
-            return false;
+            return null;
         }
 
-        if(oldLedger.Name != updatedLedger.Name)
-            oldLedger.Name = updatedLedger.Name;
+        if(dbLedger.Name != updatedLedger.Name)
+            dbLedger.Name = updatedLedger.Name;
 
-        if(oldLedger.Description != updatedLedger.Description)
-            oldLedger.Description = updatedLedger.Description;
+        if(dbLedger.Description != updatedLedger.Description)
+            dbLedger.Description = updatedLedger.Description;
         
-        if(oldLedger.Owner != updatedLedger.Owner)
+        if(dbLedger.Owner != updatedLedger.Owner)
         {
             var owner = await db.Users.FindAsync(updatedLedger.Owner.Id);
             if(owner is null)
             {
                 Logger.LogError("User {updatedLedger.Owner.Id} was not found when changing owner!", updatedLedger.Owner.Id);
-                return false;
+                return null;
             }
-            oldLedger.Owner = owner;
+            dbLedger.Owner = owner;
         }
 
         try
         {
-            oldLedger = await UpdateMembers(oldLedger, updatedLedger.Members, db);
+            dbLedger = await UpdateMembers(dbLedger, updatedLedger.Members, db);
         }
         catch(ArgumentException e)
         {
             Logger.LogError(e, "There was an exception while trying to update Members!");
-            return false;
+            return null;
         }
 
         try
         {
-            oldLedger = await UpdateCosts(oldLedger, updatedLedger.Costs, db);
+            dbLedger = await UpdateCosts(dbLedger, updatedLedger.Costs, db);
         }
         catch(ArgumentException e)
         {
             Logger.LogError(e, "There was an exception while trying to update Costs!");
-            return false;
+            return null;
         }
 
         // TODO: add logic for Shares
@@ -260,10 +254,10 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         catch(Exception e)
         {
             Logger.LogError(e, "There was an error saving ledger to the Database!");
-            return false;
+            return null;
         }
 
-        return true;
+        return dbLedger;
     }
 
     private static async Task<Ledger?> FetchLedgerByIdAsync(Guid id, ApplicationDbContext context)

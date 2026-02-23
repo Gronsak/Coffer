@@ -93,7 +93,7 @@
             return;
         
         var currencies = await Treasurer.GetCurrenciesAsync();
-        if(!currencies.Any())
+        if(currencies is null || !currencies.Any())
             return;
         var SEK = currencies.FirstOrDefault(c => c.ISOName == "SEK");
         if(SEK is null)
@@ -125,7 +125,9 @@
             }
         }else{
             var success = Ledger.AddCost(cost);
-            var updateSuccess = await Treasurer.UpdateLedgerAsync(Ledger);
+            var updatedLedger = await Treasurer.UpdateLedgerAsync(Ledger);
+            if(updatedLedger is not null)
+                Ledger = updatedLedger;
         }
     }
 }
