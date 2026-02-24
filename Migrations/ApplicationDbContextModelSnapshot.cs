@@ -111,7 +111,7 @@ namespace Coffer.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CurrencyId")
+                    b.Property<int>("CurrencyISONum")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
@@ -138,7 +138,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("AddedById");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex("CurrencyISONum");
 
                     b.HasIndex("LedgerId");
 
@@ -149,7 +149,7 @@ namespace Coffer.Migrations
 
             modelBuilder.Entity("Coffer.Models.Currency", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ISONum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -160,9 +160,6 @@ namespace Coffer.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ISONum")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -171,7 +168,7 @@ namespace Coffer.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.HasKey("ISONum");
 
                     b.ToTable("Currencies");
                 });
@@ -185,7 +182,7 @@ namespace Coffer.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CurrencyId")
+                    b.Property<int>("CurrencyISONum")
                         .HasColumnType("INTEGER");
 
                     b.Property<Guid?>("LedgerId")
@@ -205,7 +202,7 @@ namespace Coffer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex("CurrencyISONum");
 
                     b.HasIndex("LedgerId");
 
@@ -228,7 +225,7 @@ namespace Coffer.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DefaultCurrencyId")
+                    b.Property<int>("DefaultCurrencyISONum")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("DefaultShareType")
@@ -251,7 +248,7 @@ namespace Coffer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DefaultCurrencyId");
+                    b.HasIndex("DefaultCurrencyISONum");
 
                     b.HasIndex("OwnerId");
 
@@ -270,7 +267,7 @@ namespace Coffer.Migrations
                     b.Property<decimal>("Modifier")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ShareCurrencyId")
+                    b.Property<int>("ShareCurrencyISONum")
                         .HasColumnType("INTEGER");
 
                     b.Property<Guid?>("SingleCostId")
@@ -279,7 +276,7 @@ namespace Coffer.Migrations
                     b.Property<decimal>("Split")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("SplitCurrencyId")
+                    b.Property<int>("SplitCurrencyISONum")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Type")
@@ -292,11 +289,11 @@ namespace Coffer.Migrations
 
                     b.HasIndex("LedgerId");
 
-                    b.HasIndex("ShareCurrencyId");
+                    b.HasIndex("ShareCurrencyISONum");
 
                     b.HasIndex("SingleCostId");
 
-                    b.HasIndex("SplitCurrencyId");
+                    b.HasIndex("SplitCurrencyISONum");
 
                     b.HasIndex("UserId");
 
@@ -547,7 +544,7 @@ namespace Coffer.Migrations
 
                     b.HasOne("Coffer.Models.Currency", "Currency")
                         .WithMany()
-                        .HasForeignKey("CurrencyId")
+                        .HasForeignKey("CurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -570,7 +567,7 @@ namespace Coffer.Migrations
                 {
                     b.HasOne("Coffer.Models.Currency", "Currency")
                         .WithMany()
-                        .HasForeignKey("CurrencyId")
+                        .HasForeignKey("CurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -597,7 +594,7 @@ namespace Coffer.Migrations
                 {
                     b.HasOne("Coffer.Models.Currency", "DefaultCurrency")
                         .WithMany()
-                        .HasForeignKey("DefaultCurrencyId")
+                        .HasForeignKey("DefaultCurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -620,7 +617,7 @@ namespace Coffer.Migrations
 
                     b.HasOne("Coffer.Models.Currency", "ShareCurrency")
                         .WithMany()
-                        .HasForeignKey("ShareCurrencyId")
+                        .HasForeignKey("ShareCurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -630,7 +627,7 @@ namespace Coffer.Migrations
 
                     b.HasOne("Coffer.Models.Currency", "SplitCurrency")
                         .WithMany()
-                        .HasForeignKey("SplitCurrencyId")
+                        .HasForeignKey("SplitCurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

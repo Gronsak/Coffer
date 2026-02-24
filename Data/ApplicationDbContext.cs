@@ -48,5 +48,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
         builder.Entity<Tag>()
             .HasMany(t => t.ExcludedShares)
             .WithMany(s => s.ExcludeTags);
+        builder.Entity<Currency>()
+            .HasKey(c => c.ISONum);
     }
 }

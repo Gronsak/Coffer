@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Coffer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260208095024_FixCreated")]
-    partial class FixCreated
+    [Migration("20260224175606_InitDb")]
+    partial class InitDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -114,7 +114,7 @@ namespace Coffer.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CurrencyId")
+                    b.Property<int>("CurrencyISONum")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
@@ -141,7 +141,7 @@ namespace Coffer.Migrations
 
                     b.HasIndex("AddedById");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex("CurrencyISONum");
 
                     b.HasIndex("LedgerId");
 
@@ -152,7 +152,7 @@ namespace Coffer.Migrations
 
             modelBuilder.Entity("Coffer.Models.Currency", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ISONum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -163,9 +163,6 @@ namespace Coffer.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ISONum")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -174,7 +171,7 @@ namespace Coffer.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.HasKey("ISONum");
 
                     b.ToTable("Currencies");
                 });
@@ -188,7 +185,7 @@ namespace Coffer.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CurrencyId")
+                    b.Property<int>("CurrencyISONum")
                         .HasColumnType("INTEGER");
 
                     b.Property<Guid?>("LedgerId")
@@ -208,7 +205,7 @@ namespace Coffer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex("CurrencyISONum");
 
                     b.HasIndex("LedgerId");
 
@@ -231,7 +228,7 @@ namespace Coffer.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DefaultCurrencyId")
+                    b.Property<int>("DefaultCurrencyISONum")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("DefaultShareType")
@@ -254,7 +251,7 @@ namespace Coffer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DefaultCurrencyId");
+                    b.HasIndex("DefaultCurrencyISONum");
 
                     b.HasIndex("OwnerId");
 
@@ -273,13 +270,16 @@ namespace Coffer.Migrations
                     b.Property<decimal>("Modifier")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ShareCurrencyId")
+                    b.Property<int>("ShareCurrencyISONum")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("SingleCostId")
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("Split")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("SplitCurrencyId")
+                    b.Property<int>("SplitCurrencyISONum")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Type")
@@ -292,9 +292,11 @@ namespace Coffer.Migrations
 
                     b.HasIndex("LedgerId");
 
-                    b.HasIndex("ShareCurrencyId");
+                    b.HasIndex("ShareCurrencyISONum");
 
-                    b.HasIndex("SplitCurrencyId");
+                    b.HasIndex("SingleCostId");
+
+                    b.HasIndex("SplitCurrencyISONum");
 
                     b.HasIndex("UserId");
 
@@ -331,11 +333,16 @@ namespace Coffer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid?>("LedgerId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LedgerId");
 
                     b.ToTable("Tags");
                 });
@@ -489,17 +496,32 @@ namespace Coffer.Migrations
 
             modelBuilder.Entity("ShareTag", b =>
                 {
-                    b.Property<Guid>("SharesId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TagsId")
+                    b.Property<int>("IncludeTagsId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("SharesId", "TagsId");
+                    b.Property<Guid>("IncludedSharesId")
+                        .HasColumnType("TEXT");
 
-                    b.HasIndex("TagsId");
+                    b.HasKey("IncludeTagsId", "IncludedSharesId");
+
+                    b.HasIndex("IncludedSharesId");
 
                     b.ToTable("ShareTag");
+                });
+
+            modelBuilder.Entity("ShareTag1", b =>
+                {
+                    b.Property<int>("ExcludeTagsId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ExcludedSharesId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ExcludeTagsId", "ExcludedSharesId");
+
+                    b.HasIndex("ExcludedSharesId");
+
+                    b.ToTable("ShareTag1");
                 });
 
             modelBuilder.Entity("AppUserLedger", b =>
@@ -525,7 +547,7 @@ namespace Coffer.Migrations
 
                     b.HasOne("Coffer.Models.Currency", "Currency")
                         .WithMany()
-                        .HasForeignKey("CurrencyId")
+                        .HasForeignKey("CurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -548,7 +570,7 @@ namespace Coffer.Migrations
                 {
                     b.HasOne("Coffer.Models.Currency", "Currency")
                         .WithMany()
-                        .HasForeignKey("CurrencyId")
+                        .HasForeignKey("CurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -575,7 +597,7 @@ namespace Coffer.Migrations
                 {
                     b.HasOne("Coffer.Models.Currency", "DefaultCurrency")
                         .WithMany()
-                        .HasForeignKey("DefaultCurrencyId")
+                        .HasForeignKey("DefaultCurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -598,13 +620,17 @@ namespace Coffer.Migrations
 
                     b.HasOne("Coffer.Models.Currency", "ShareCurrency")
                         .WithMany()
-                        .HasForeignKey("ShareCurrencyId")
+                        .HasForeignKey("ShareCurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Coffer.Models.Cost", "SingleCost")
+                        .WithMany()
+                        .HasForeignKey("SingleCostId");
+
                     b.HasOne("Coffer.Models.Currency", "SplitCurrency")
                         .WithMany()
-                        .HasForeignKey("SplitCurrencyId")
+                        .HasForeignKey("SplitCurrencyISONum")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -613,6 +639,8 @@ namespace Coffer.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("ShareCurrency");
+
+                    b.Navigation("SingleCost");
 
                     b.Navigation("SplitCurrency");
 
@@ -630,6 +658,13 @@ namespace Coffer.Migrations
                         .HasForeignKey("LedgerId");
 
                     b.Navigation("Holder");
+                });
+
+            modelBuilder.Entity("Coffer.Models.Tag", b =>
+                {
+                    b.HasOne("Coffer.Models.Ledger", null)
+                        .WithMany("AllTags")
+                        .HasForeignKey("LedgerId");
                 });
 
             modelBuilder.Entity("CostTag", b =>
@@ -700,15 +735,30 @@ namespace Coffer.Migrations
 
             modelBuilder.Entity("ShareTag", b =>
                 {
-                    b.HasOne("Coffer.Models.Share", null)
+                    b.HasOne("Coffer.Models.Tag", null)
                         .WithMany()
-                        .HasForeignKey("SharesId")
+                        .HasForeignKey("IncludeTagsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Coffer.Models.Share", null)
+                        .WithMany()
+                        .HasForeignKey("IncludedSharesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ShareTag1", b =>
+                {
                     b.HasOne("Coffer.Models.Tag", null)
                         .WithMany()
-                        .HasForeignKey("TagsId")
+                        .HasForeignKey("ExcludeTagsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Coffer.Models.Share", null)
+                        .WithMany()
+                        .HasForeignKey("ExcludedSharesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -720,6 +770,8 @@ namespace Coffer.Migrations
 
             modelBuilder.Entity("Coffer.Models.Ledger", b =>
                 {
+                    b.Navigation("AllTags");
+
                     b.Navigation("Costs");
 
                     b.Navigation("IOUs");

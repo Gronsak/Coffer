@@ -10,7 +10,6 @@ public class Currency
         this.Decimals = decimals;
         this.ISOName = isoName;
     }
-    public int Id { get; set; }
     public int ISONum { get; set; }
     public string Name { get; set; } = "";
     public string Symbol { get; set; } = "";
