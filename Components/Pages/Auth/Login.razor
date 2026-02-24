@@ -44,6 +44,7 @@
         public string? Error { get; set; }
     }
 
+    // TODO: allow username sign in
     async Task HandleLogin()
     {
         if(model.Email is null || model.Password is null) //TODO: Add error message

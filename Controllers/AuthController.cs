@@ -25,14 +25,18 @@ public class AuthController : ControllerBase
         public string Password { get; set; } = string.Empty;
         public bool RememberMe { get; set; }
     }
-
+    // TODO: add ability to sign in with username
     [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var result = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, dto.RememberMe, lockoutOnFailure: false);
+        
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user is null || user.UserName is null)
+            return Unauthorized();
+        
+        var result = await _signInManager.PasswordSignInAsync(user.UserName, dto.Password, dto.RememberMe, lockoutOnFailure: false);
 
         if (result.Succeeded)
         {
