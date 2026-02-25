@@ -16,10 +16,8 @@ public class Share
     public List<Tag> IncludeTags { get; set; } = [];
     public List<Tag> ExcludeTags { get; set; } = [];
     public ShareType Type { get; set; } = ShareType.Shares;
-    public decimal Modifier { get; set; } = 0;
+    public decimal Size { get; set; } = 0;
     public Currency ShareCurrency { get; set; } = new();
-    public decimal Split { get; set; } = 0;
-    public Currency SplitCurrency { get; set; } = new();
     public bool UpdateShare(Share share)
     {
         if(this.Id != share.Id || this.User != share.User)
@@ -29,10 +27,8 @@ public class Share
         this.IncludeTags = share.IncludeTags;
         this.ExcludeTags = share.ExcludeTags;
         this.Type = share.Type;
-        this.Modifier = share.Modifier;
+        this.Size = share.Size;
         this.ShareCurrency = share.ShareCurrency;
-        this.Split = share.Split;
-        this.SplitCurrency = share.SplitCurrency;
 
         return true;
     }
@@ -49,10 +45,8 @@ public class Share
             IncludeTags.SequenceEqual(other.IncludeTags) ||
             ExcludeTags.SequenceEqual(other.ExcludeTags) ||
             Type != other.Type ||
-            Modifier != other.Modifier ||
-            ShareCurrency != other.ShareCurrency ||
-            Split != other.Split ||
-            SplitCurrency != other.SplitCurrency)
+            Size != other.Size ||
+            ShareCurrency != other.ShareCurrency)
             return false;
 
         return true;
@@ -67,9 +61,7 @@ public class Share
             ^ IncludeTags.GetHashCode()
             ^ ExcludeTags.GetHashCode()
             ^ Type.GetHashCode()
-            ^ Modifier.GetHashCode()
-            ^ ShareCurrency.GetHashCode()
-            ^ Split.GetHashCode()
-            ^ SplitCurrency.GetHashCode();
+            ^ Size.GetHashCode()
+            ^ ShareCurrency.GetHashCode();
     }
 }
