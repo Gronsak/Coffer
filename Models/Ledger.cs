@@ -214,7 +214,7 @@ public class Ledger
     }
     public bool RemoveShare(Share share)
     {
-        if(!Active || !_shares.Any(s => s.Id == share.Id) || _shares.Count(s => s.User == share.User) <= 1)
+        if(!Active || !_shares.Any(s => s.Id == share.Id) || _shares.Count(s => s.User.Id == share.User.Id) <= 1)
             return false;
         
         var success = _shares.Remove(share);
@@ -237,8 +237,19 @@ public class Ledger
     }
     public bool RemoveMember(AppUser member)
     {
-        if(!Active||!_members.Any(m => m.Id == member.Id))
+        if(!Active||!_members.Any(m => m.Id == member.Id)||_costs.Any(c => c.PayedBy.Id == member.Id))
             return false;
+
+        foreach(var share in _shares.Where(s => s.User.Id == member.Id))
+        {
+            var shareRemoved = _shares.Remove(share);
+            if(!shareRemoved)
+            {
+                RecalculateLedger();
+                return false;
+            }
+        }
+        RecalculateLedger();
         
         var success = _members.Remove(member);
         if (success)
