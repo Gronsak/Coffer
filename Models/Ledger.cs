@@ -154,6 +154,7 @@ public class Ledger
     }
     public void RecalculateLedger()
     {
+        VerifyShares();
         CalculateStakes();
         // CalculateShares();
         // CalculateIOUs();
@@ -201,6 +202,18 @@ public class Ledger
         RecalculateLedger();
         return true;
     }
+    public bool AddDefaultShare(AppUser member)
+    {
+        Share defaultShare = new()
+        {
+            Currency = DefaultCurrency,
+            Size = 1,
+            Type = DefaultShareType,
+            User = member
+        };
+
+        return AddShare(defaultShare);
+    }
     public bool UpdateShare(Share share)
     {
         if(!Active||!_shares.Any(s => s.Id == share.Id))
@@ -226,6 +239,14 @@ public class Ledger
         else
             return success;
     }
+    private void VerifyShares()
+    {
+        foreach(var member in _members)
+        {
+            if(!_shares.Any(s => s.User.Id == member.Id))
+                AddDefaultShare(member);
+        }
+    }
     public bool AddMember(AppUser member)
     {
         if(!Active||_members.Any(m => m.Id == member.Id))
@@ -250,7 +271,7 @@ public class Ledger
             }
         }
         RecalculateLedger();
-        
+
         var success = _members.Remove(member);
         if (success)
         {
