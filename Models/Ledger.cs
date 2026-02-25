@@ -214,7 +214,7 @@ public class Ledger
     }
     public bool RemoveShare(Share share)
     {
-        if(!Active||!_shares.Any(s => s.Id == share.Id))
+        if(!Active || !_shares.Any(s => s.Id == share.Id) || _shares.Count(s => s.User == share.User) <= 1)
             return false;
         
         var success = _shares.Remove(share);
