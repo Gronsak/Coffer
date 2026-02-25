@@ -7,7 +7,7 @@ public class Share
     public Share(AppUser user, Currency shareCurrency, ShareType type)
     {
         this.User = user;
-        this.ShareCurrency = shareCurrency;
+        this.Currency = shareCurrency;
         this.Type = type;
     }
     public Guid Id { get; set; }
@@ -17,7 +17,8 @@ public class Share
     public List<Tag> ExcludeTags { get; set; } = [];
     public ShareType Type { get; set; } = ShareType.Shares;
     public decimal Size { get; set; } = 0;
-    public Currency ShareCurrency { get; set; } = new();
+    public Currency Currency { get; set; } = new();
+    public decimal Amount { get; set; } = 0;
     public bool UpdateShare(Share share)
     {
         if(this.Id != share.Id || this.User != share.User)
@@ -28,7 +29,7 @@ public class Share
         this.ExcludeTags = share.ExcludeTags;
         this.Type = share.Type;
         this.Size = share.Size;
-        this.ShareCurrency = share.ShareCurrency;
+        this.Currency = share.Currency;
 
         return true;
     }
@@ -46,7 +47,7 @@ public class Share
             ExcludeTags.SequenceEqual(other.ExcludeTags) ||
             Type != other.Type ||
             Size != other.Size ||
-            ShareCurrency != other.ShareCurrency)
+            Currency != other.Currency)
             return false;
 
         return true;
@@ -62,6 +63,6 @@ public class Share
             ^ ExcludeTags.GetHashCode()
             ^ Type.GetHashCode()
             ^ Size.GetHashCode()
-            ^ ShareCurrency.GetHashCode();
+            ^ Currency.GetHashCode();
     }
 }
