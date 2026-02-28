@@ -160,33 +160,34 @@ public class Ledger
         // CalculateIOUs();
         this._updated = DateTime.Now;
     }
-    public bool AddCost(Cost cost, bool disableAutoRecalc = false)
+    public bool AddCost(Cost cost, bool AutoRecalc = true)
     {
         if(!Active||_costs.Contains(cost))
             return false;
 
         _costs.Add(cost);
-        if(!disableAutoRecalc)
+        if(AutoRecalc)
         {
             RecalculateLedger();
         }
         return true;
     }
-    public bool UpdateCost(Cost cost, bool disableAutoRecalc = false)
+    public bool UpdateCost(Cost cost, bool AutoRecalc = true)
     {
         if(!Active||!_costs.Any(c => c.Id == cost.Id))
             return false;
         
         var existingCost = _costs.Single(c => c.Id == cost.Id);
-        existingCost.UpdateCost(cost);
-        if(!disableAutoRecalc)
+        if(existingCost != cost)
+            existingCost.UpdateCost(cost);
+        if(AutoRecalc)
         {
             RecalculateLedger();
         }
 
         return true;
     }
-    public bool RemoveCost(Cost cost, bool disableAutoRecalc = false)
+    public bool RemoveCost(Cost cost, bool AutoRecalc = true)
     {
         if(!Active||!_costs.Any(c => c.Id == cost.Id))
             return false;
@@ -194,7 +195,7 @@ public class Ledger
         var success = _costs.Remove(cost);
         if (success)
         {
-            if(!disableAutoRecalc)
+            if(AutoRecalc)
             {
                 RecalculateLedger();
             }
@@ -203,18 +204,18 @@ public class Ledger
         else
             return success;
     }
-    public bool AddShare(Share share, bool disableAutoRecalc = false)
+    public bool AddShare(Share share, bool AutoRecalc = true)
     {
         if(!Active||_shares.Any(s => s.Id == share.Id))
             return false;
         _shares.Add(share);
-        if(!disableAutoRecalc)
+        if(AutoRecalc)
         {
             RecalculateLedger();
         }
         return true;
     }
-    public bool AddDefaultShare(AppUser member, bool disableAutoRecalc = false)
+    public bool AddDefaultShare(AppUser member, bool AutoRecalc = true)
     {
         Share defaultShare = new()
         {
@@ -224,23 +225,24 @@ public class Ledger
             User = member
         };
 
-        return AddShare(defaultShare, disableAutoRecalc);
+        return AddShare(defaultShare, AutoRecalc);
     }
-    public bool UpdateShare(Share share, bool disableAutoRecalc = false)
+    public bool UpdateShare(Share share, bool AutoRecalc = true)
     {
         if(!Active||!_shares.Any(s => s.Id == share.Id))
             return false;
         
         var existingShare = _shares.Single(s => s.Id == share.Id);
-        existingShare.UpdateShare(share);
-        if(!disableAutoRecalc)
+        if(existingShare != share)
+            existingShare.UpdateShare(share);
+        if(AutoRecalc)
         {
             RecalculateLedger();
         }
 
         return true;
     }
-    public bool RemoveShare(Share share, bool disableAutoRecalc = false)
+    public bool RemoveShare(Share share, bool AutoRecalc = true)
     {
         if(!Active || !_shares.Any(s => s.Id == share.Id) || _shares.Count(s => s.User.Id == share.User.Id) <= 1)
             return false;
@@ -248,7 +250,7 @@ public class Ledger
         var success = _shares.Remove(share);
         if (success)
         {
-            if(!disableAutoRecalc)
+            if(AutoRecalc)
             {
                 RecalculateLedger();
             }
@@ -265,19 +267,19 @@ public class Ledger
                 AddDefaultShare(member);
         }
     }
-    public bool AddMember(AppUser member, bool disableAutoRecalc = false)
+    public bool AddMember(AppUser member, bool AutoRecalc = true)
     {
         if(!Active||_members.Any(m => m.Id == member.Id))
             return false;
 
         _members.Add(member);
-        if(!disableAutoRecalc)
+        if(AutoRecalc)
         {
             RecalculateLedger();
         }
         return true;
     }
-    public bool RemoveMember(AppUser member, bool disableAutoRecalc = false)
+    public bool RemoveMember(AppUser member, bool AutoRecalc = true)
     {
         if(!Active||!_members.Any(m => m.Id == member.Id)||_costs.Any(c => c.PayedBy.Id == member.Id))
             return false;
@@ -287,14 +289,14 @@ public class Ledger
             var shareRemoved = _shares.Remove(share);
             if(!shareRemoved)
             {
-                if(!disableAutoRecalc)
+                if(AutoRecalc)
                 {
                     RecalculateLedger();
                 }
                 return false;
             }
         }
-        if(!disableAutoRecalc)
+        if(AutoRecalc)
         {
             RecalculateLedger();
         }
@@ -302,7 +304,7 @@ public class Ledger
         var success = _members.Remove(member);
         if (success)
         {
-            if(!disableAutoRecalc)
+            if(AutoRecalc)
             {
                 RecalculateLedger();
             }
