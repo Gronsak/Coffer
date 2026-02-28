@@ -225,7 +225,7 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
 
         try
         {
-            dbLedger = await UpdateMembers(dbLedger, updatedLedger.Members, db);
+            dbLedger = await UpdateMembers(dbLedger, updatedLedger.Members, db, AutoRecalc: false);
         }
         catch(ArgumentException e)
         {
@@ -235,7 +235,7 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
 
         try
         {
-            dbLedger = await UpdateCosts(dbLedger, updatedLedger.Costs, db);
+            dbLedger = await UpdateCosts(dbLedger, updatedLedger.Costs, db, AutoRecalc: false);
         }
         catch(ArgumentException e)
         {
@@ -246,6 +246,15 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         // TODO: add logic for Shares
         // TODO: add logic for IOUs (maybe, this should really be handled internally in the ledger and might not be needed)
         // TODO: add logic for Stakes (maybe, this is really handled internally in the ledger and might not be needed)
+        try
+        {
+            dbLedger.RecalculateLedger();
+        }
+        catch(Exception e)
+        {
+            Logger.LogError(e, "There was an error recalculating the Ledger!");
+            return null;
+        }
 
         try
         {
@@ -298,7 +307,7 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
             .FirstOrDefaultAsync();
         return ledger;
     }
-    private static async Task<Ledger> UpdateMembers(Ledger ledger, IEnumerable<AppUser> members, ApplicationDbContext context)
+    private static async Task<Ledger> UpdateMembers(Ledger ledger, IEnumerable<AppUser> members, ApplicationDbContext context, bool AutoRecalc = true)
     {
         if(!ledger.Members.SequenceEqual(members)){
             foreach(var member in members)
@@ -308,7 +317,7 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
                     throw new ArgumentException($"User with Id {member.Id} does not exist!");
                 if(!ledger.Members.Any(m => m.Id == member.Id))
                 {
-                    ledger.AddMember(await context.Users.SingleAsync(u => u.Id == member.Id));
+                    ledger.AddMember(member: await context.Users.SingleAsync(u => u.Id == member.Id), AutoRecalc: AutoRecalc);
                 }
             }
             var membersToRemove = ledger.Members.Where(m => !members.Any(m2 => m2.Id == m.Id));
@@ -316,12 +325,12 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
             if (membersToRemove is not null)
                 foreach(var member in membersToRemove)
                 {
-                    ledger.RemoveMember(member);
+                    ledger.RemoveMember(member: member, AutoRecalc: AutoRecalc);
                 }
         }
         return ledger;
     }
-    private static async Task<Ledger> UpdateCosts(Ledger ledger, IEnumerable<Cost> costs, ApplicationDbContext context)
+    private static async Task<Ledger> UpdateCosts(Ledger ledger, IEnumerable<Cost> costs, ApplicationDbContext context, bool AutoRecalc = true)
     {
         if(!ledger.Costs.SequenceEqual(costs))
         {
@@ -350,12 +359,10 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
                 cost.Tags = tags;
 
                 if(!ledger.Costs.Any( c => c.Id == cost.Id))
-                    ledger.AddCost(cost);
+                    ledger.AddCost(cost: cost, AutoRecalc: AutoRecalc);
                 else
                 {
-                    var dbCost = ledger.Costs.Single(c => c.Id == cost.Id);
-                    if(dbCost != cost)
-                        dbCost.UpdateCost(cost);
+                    ledger.UpdateCost(cost: cost, AutoRecalc: AutoRecalc);
                 }
             }
             var costsToRemove = ledger.Costs.Where(c => !costs.Any(c2 => c2.Id == c.Id));
@@ -363,7 +370,7 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
             if (costsToRemove is not null)
                 foreach(var cost in costsToRemove)
                 {
-                    ledger.RemoveCost(cost);
+                    ledger.RemoveCost(cost: cost, AutoRecalc: AutoRecalc);
                 }
         }
         return ledger;
