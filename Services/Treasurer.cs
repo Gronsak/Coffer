@@ -65,7 +65,10 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
     {
         using var db = await DbContextFactory.CreateDbContextAsync();
 
-        var ledger = await FetchLedgerByIdAsync(id, db);
+        var ledger = await db.Ledgers
+            .Where(l => l.Id == id)
+            .OrderBy(l => l.Name)
+            .FirstOrDefaultAsync();
         
         if (ledger is null)
             return new();
@@ -77,7 +80,10 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
     {
         using var db = await DbContextFactory.CreateDbContextAsync();
 
-        var ledger = await FetchLedgerByNameAsync(name, db);
+        var ledger = await db.Ledgers
+            .Where(l => l.Name == name)
+            .OrderBy(l => l.Name)
+            .FirstOrDefaultAsync();
 
         return ledger;
     }
@@ -87,17 +93,6 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         using var db = await DbContextFactory.CreateDbContextAsync();
 
         var ledgers = await db.Ledgers
-            .Include(l => l.Costs)
-                .ThenInclude(c => c.Tags)
-            .Include(l => l.IOUs)
-            .Include(l => l.Members)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.SingleCost)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.IncludeTags)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.ExcludeTags)
-            .Include(l => l.Stakes)
             .OrderBy(l => l.Name)
             .ToListAsync();
 
@@ -109,17 +104,6 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         using var db = await DbContextFactory.CreateDbContextAsync();
 
         var ledgers = await db.Ledgers
-            .Include(l => l.Costs)
-                .ThenInclude(c => c.Tags)
-            .Include(l => l.IOUs)
-            .Include(l => l.Members)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.SingleCost)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.IncludeTags)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.ExcludeTags)
-            .Include(l => l.Stakes)
             .Where(l => l.Owner == owner)
             .OrderBy(l => l.Name)
             .ToListAsync();
@@ -141,17 +125,6 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         using var db = await DbContextFactory.CreateDbContextAsync();
 
         var ledgers = await db.Ledgers
-            .Include(l => l.Costs)
-                .ThenInclude(c => c.Tags)
-            .Include(l => l.IOUs)
-            .Include(l => l.Members)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.SingleCost)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.IncludeTags)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.ExcludeTags)
-            .Include(l => l.Stakes)
             .Where(l => l.Members.Contains(member))
             .OrderBy(l => l.Name)
             .ToListAsync();
@@ -198,7 +171,10 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         
         using var db = await DbContextFactory.CreateDbContextAsync();
 
-        var dbLedger = await FetchLedgerByIdAsync(updatedLedger.Id, db);
+        var dbLedger = await db.Ledgers
+            .Where(l => l.Id == updatedLedger.Id)
+            .OrderBy(l => l.Name)
+            .FirstOrDefaultAsync();
 
         if(dbLedger is null)
         {
@@ -269,44 +245,6 @@ public class Treasurer(UserManager<AppUser> userManager, IDbContextFactory<Appli
         return dbLedger;
     }
 
-    private static async Task<Ledger?> FetchLedgerByIdAsync(Guid id, ApplicationDbContext context)
-    {
-        var ledger = context.Ledgers
-            .Include(l => l.Costs)
-                .ThenInclude(c => c.Tags)
-            .Include(l => l.IOUs)
-            .Include(l => l.Members)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.SingleCost)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.IncludeTags)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.ExcludeTags)
-            .Include(l => l.Stakes)
-            .Where(l => l.Id == id)
-            .OrderBy(l => l.Name)
-            .FirstOrDefault();
-        return ledger;
-    }
-    private static async Task<Ledger?> FetchLedgerByNameAsync(string name, ApplicationDbContext context)
-    {
-        var ledger = await context.Ledgers
-            .Include(l => l.Costs)
-                .ThenInclude(c => c.Tags)
-            .Include(l => l.IOUs)
-            .Include(l => l.Members)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.SingleCost)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.IncludeTags)
-            .Include(l => l.Shares)
-                .ThenInclude(s => s.ExcludeTags)
-            .Include(l => l.Stakes)
-            .Where(l => l.Name == name)
-            .OrderBy(l => l.Name)
-            .FirstOrDefaultAsync();
-        return ledger;
-    }
     private static async Task<Ledger> UpdateMembers(Ledger ledger, IEnumerable<AppUser> members, ApplicationDbContext context, bool AutoRecalc = true)
     {
         if(!ledger.Members.SequenceEqual(members)){

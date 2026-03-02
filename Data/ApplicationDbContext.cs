@@ -24,9 +24,29 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        // Customize the ASP.NET Identity model and override the defaults if needed.
-        // For example, you can rename the ASP.NET Identity table names and more.
-        // Add your customizations after calling base.OnModelCreating(builder);
+
+        builder.Entity<Cost>()
+            .HasMany(c => c.Tags)
+            .WithMany(t => t.Costs);
+        builder.Entity<Cost>()
+            .Navigation(c => c.Currency).AutoInclude();
+        builder.Entity<Cost>()
+            .Navigation(c => c.AddedBy).AutoInclude();
+        builder.Entity<Cost>()
+            .Navigation(c => c.PayedBy).AutoInclude();
+        builder.Entity<Cost>()
+            .Navigation(c => c.Tags).AutoInclude();
+        
+        builder.Entity<Currency>()
+            .HasKey(c => c.ISONum);
+
+        builder.Entity<IOU>()
+            .Navigation(i => i.OwedByUser).AutoInclude();
+        builder.Entity<IOU>()
+            .Navigation(i => i.OwedToUser).AutoInclude();
+        builder.Entity<IOU>()
+            .Navigation(i => i.Currency).AutoInclude();
+
         builder.Entity<Ledger>()
             .HasMany(l => l.Members)
             .WithMany(u => u.MemberOf);
@@ -39,6 +59,41 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
         builder.Entity<Ledger>()
             .Property(l => l.LastUpdated)
             .HasField("_updated");
+        builder.Entity<Ledger>()
+            .Navigation(l => l.Owner).AutoInclude();
+        builder.Entity<Ledger>()
+            .Navigation(l => l.Shares).AutoInclude();
+        builder.Entity<Ledger>()
+            .Navigation(l => l.IOUs).AutoInclude();
+        builder.Entity<Ledger>()
+            .Navigation(l => l.Members).AutoInclude();
+        builder.Entity<Ledger>()
+            .Navigation(l => l.Costs).AutoInclude();
+        builder.Entity<Ledger>()
+            .Navigation(l => l.Stakes).AutoInclude();
+        builder.Entity<Ledger>()
+            .Navigation(l => l.DefaultCurrency).AutoInclude();
+        
+        builder.Entity<Share>()
+            .HasMany(s => s.IncludeTags)
+            .WithMany(t => t.IncludedShares);
+        builder.Entity<Share>()
+            .HasMany(s => s.ExcludeTags)
+            .WithMany(t => t.ExcludedShares);
+        builder.Entity<Share>()
+            .Navigation(s => s.User).AutoInclude();
+        builder.Entity<Share>()
+            .Navigation(s => s.SingleCost).AutoInclude();
+        builder.Entity<Share>()
+            .Navigation(s => s.IncludeTags).AutoInclude();
+        builder.Entity<Share>()
+            .Navigation(s => s.ExcludeTags).AutoInclude();
+        builder.Entity<Share>()
+            .Navigation(s => s.Currency).AutoInclude();
+
+        builder.Entity<Stake>()
+            .Navigation(s => s.Holder).AutoInclude();
+        
         builder.Entity<Tag>()
             .HasMany(t => t.Costs)
             .WithMany(c => c.Tags);
@@ -48,7 +103,6 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
         builder.Entity<Tag>()
             .HasMany(t => t.ExcludedShares)
             .WithMany(s => s.ExcludeTags);
-        builder.Entity<Currency>()
-            .HasKey(c => c.ISONum);
+        
     }
 }
