@@ -34,15 +34,20 @@ public class AuthController : ControllerBase
         
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user is null || user.UserName is null)
+        {
+            _logger.LogWarning("Could not find user with email: {Email}", dto.Email);
             return Unauthorized();
+        }
         
         var result = await _signInManager.PasswordSignInAsync(user.UserName, dto.Password, dto.RememberMe, lockoutOnFailure: false);
 
         if (result.Succeeded)
         {
+            _logger.LogInformation("{User} signed in.", user.UserName);
             return Ok();
         }
 
+        _logger.LogWarning("{User} was not signed in, LockedOut: {IsLockedOut}, NotAllowed: {IsNotAllowed}, Require2FA: {Require2FA}", user.UserName, result.IsLockedOut, result.IsNotAllowed, result.RequiresTwoFactor);
         return Unauthorized();
     }
 }
