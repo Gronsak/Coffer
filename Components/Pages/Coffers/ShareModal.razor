@@ -1,0 +1,137 @@
+@using System.Configuration
+@rendermode InteractiveServer
+
+@if(!Hidden && _members is not null && _members.Any() && _shares is not null && _shares.Any() && shareForms.Any()){
+    <div class="modal fade @modalClass" id="costModal" aria-labelledby="costModalLabel" aria-hidden="@Hidden" style="display:@modalDisplay;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="costModalLabel">Add new cost</h1>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div>Normal</div>
+                    @foreach(var shareForm in shareForms.Where(s => !s.SingleCost ).OrderBy(s => s.User.UserName)){
+                        <EditForm Model="shareForm">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">@shareForm.User</span>
+                                <InputSelect class="form-select" @bind-Value="shareForm.Type">
+                                    <option value="@ShareType.Shares">Shares</option>
+                                    <option value="@ShareType.Percentage">Percentage</option>
+                                    <option value="@ShareType.Fixed">Fixed Amount</option>
+                                </InputSelect>
+                                <InputNumber class="form-control" @bind-Value="shareForm.Size" />
+                                @if(shareForm.Type == ShareType.Fixed){
+                                    <span class="input-group-text">@shareForm.Currency.Symbol</span>
+                                }else if(shareForm.Type == ShareType.Percentage){
+                                    <span class="input-group-text">%</span>
+                                }
+                                <button type="button" class="btn btn-danger">
+                                    <Blazicon Svg='MdiIcon.Close' />
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                    <div class="input-group mb-3">
+                        <input class="form-control" list="membersList" placeholder="Search members..." />
+                        <datalist id="membersList">
+                            @foreach(var member in _members){
+                                <option value="@member.UserName" />
+                            }
+                        </datalist>
+                        <button type="button" class="btn btn-primary">
+                            <Blazicon Svg="MdiIcon.WalletPlus" />
+                        </button>
+                    </div>
+                    <div>Single Cost</div>
+                    @foreach(var groups in shareForms.Where(s => s.SingleCost ).OrderBy(s => s.User.UserName).GroupBy(s => s.SingleCostId)){
+                        @foreach(var shareForm in groups){
+                            <EditForm Model="shareForm">
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">@shareForm.User</span>
+                                    <InputSelect class="form-select" @bind-Value="shareForm.Type">
+                                        <option value="@ShareType.Shares">Shares</option>
+                                        <option value="@ShareType.Percentage">Percentage</option>
+                                        <option value="@ShareType.Fixed">Fixed Amount</option>
+                                    </InputSelect>
+                                    <InputNumber class="form-control" @bind-Value="shareForm.Size" />
+                                    @if(shareForm.Type == ShareType.Fixed){
+                                        <span class="input-group-text">@shareForm.Currency.Symbol</span>
+                                    }else if(shareForm.Type == ShareType.Percentage){
+                                        <span class="input-group-text">%</span>
+                                    }
+                                    <button type="button" class="btn btn-warning">
+                                        <Blazicon Svg='MdiIcon.Close' />
+                                    </button>
+                                </div>
+                            </EditForm>
+                        }
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade @modalClass" @onclick="Close" style="display:@modalDisplay;"></div>
+}
+@code {
+    [Parameter]
+    public EventCallback<Share> OnSave { get; set; }
+    bool Hidden = true;
+    string modalDisplay = "none";
+    string modalClass = "";
+    IEnumerable<Share>? _shares;
+    IEnumerable<AppUser>? _members;
+    IEnumerable<Tag>? _tags;
+    List<ShareFormModel> shareForms = [];
+    private class ShareFormModel(Share share){
+        public Guid Id = share.Id;
+        public AppUser User = share.User;
+        public Guid? SingleCostId = share.SingleCost?.Id ?? null;
+        public bool SingleCost = share.SingleCost is null ? false : true;
+        public ShareType Type = share.Type;
+        public string IncludeTagName = "";
+        public string ExcludeTagName = "";
+        public Currency Currency = share.Currency;
+        public decimal Size = share.Size;
+
+    }
+    public async Task Show(IEnumerable<Share> shares, IEnumerable<AppUser> members, IEnumerable<Tag> tags){
+        _shares = shares;
+        _members = members;
+        _tags = tags;
+        shareForms = [];
+
+        foreach(var share in _shares){
+            shareForms.Add(new(share));
+        }
+
+        Hidden = false;
+        modalDisplay = "block";
+        StateHasChanged();
+        await Task.Delay(50);
+        modalClass = "show";
+        StateHasChanged();
+    }
+    
+    public async Task Close(){
+        modalClass = "";
+        StateHasChanged();
+        await Task.Delay(500);
+        modalDisplay = "none";
+        Hidden = true;
+        StateHasChanged();
+    }
+
+    public async Task AddShare(AppUser user){
+
+    }
+    public async Task UpdateShare(Share share){
+
+    }
+    public async Task RemoveShare(Share share){
+
+    }
+}

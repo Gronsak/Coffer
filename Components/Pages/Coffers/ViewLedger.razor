@@ -44,19 +44,25 @@
         </div>
         <div class="p-2" style="min-width: 20rem;">
             <div class="p-2 text-bg-primary rounded">
-                Members <span class="badge text-bg-secondary">@Ledger.Members.Count()</span>
+                Members 
+                <span class="badge text-bg-secondary">@Ledger.Members.Count()</span>
+                <button type="button" class="badge btn btn-success float-end">
+                    <Blazicon Svg='MdiIcon.AccountPlus.WithSize("120%")' />
+                </button>
             </div>
-            <ul class="list-group mt-2">
+            <ul class="list-group my-2">
             @foreach(var member in Ledger.Members){
                 <li class="list-group-item">@member</li>
             }
             </ul>
-            <button type="button" class="btn btn-primary position-sticky bottom-0 w-100">
-                <Blazicon Svg='MdiIcon.AccountPlus.WithSize("200%")' />
+            <button type="button" class="btn btn-primary w-100" @onclick="OpenShareModal">
+                <Blazicon Svg='MdiIcon.Pencil.WithSize("200%")' />
+                <Blazicon Svg='MdiIcon.TicketPercent.WithSize("200%")' />
             </button>
         </div>
     </div>
     <CostModal @ref=costModal OnSave="SaveCostModal" />
+    <ShareModal @ref="shareModal" OnSave="SaveShareModal" />
 }
 
 @code {
@@ -69,6 +75,7 @@
     Ledger? Ledger;
     bool Loading = true;
     CostModal costModal = new();
+    ShareModal shareModal = new();
     protected override async Task OnParametersSetAsync()
     {
         if(authStateTask is not null)
@@ -129,5 +136,24 @@
             if(updatedLedger is not null)
                 Ledger = updatedLedger;
         }
+    }
+    public async Task OpenShareModal()
+    {
+        if(Ledger is null || State is null)
+            return;
+        
+        var CurrentUserId = State.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if(CurrentUserId is null)
+            return;
+        
+        var user = Ledger.Members.FirstOrDefault(m => m.Id == CurrentUserId);
+        if(user is null)
+            return;
+        Ledger.RecalculateLedger();
+        await shareModal.Show(Ledger.Shares, Ledger.Members, Ledger.AllTags);
+    }
+    public async Task SaveShareModal(Share share)
+    {
+
     }
 }
